@@ -1,0 +1,42 @@
+---
+name: GenPoc
+schemaVersion: 1
+workflows:
+  exp01:
+    type:
+      language: snakemake
+      version: 1.0
+    sourceURL: workflows/exp01
+  hello:
+    type:
+      language: snakemake
+      version: 1.0
+    sourceURL: workflows/hello
+data:
+  - location: s3://genpocdata-992085379228-canada-central-1/Genomics-Jordyn/*
+    readOnly: true
+  - location: s3://genpocdata-992085379228-canada-central-1/Example-Data/*
+    readOnly: true
+  - location: s3://genpocdata-992085379228-canada-central-1/Reference-Databases/*
+    readOnly: true
+contexts:
+  onDemandModSnakemakeCtx:
+    requestSpotInstances: false
+    engines:
+      - type: snakemake
+        engine: snakemake
+  onDemandSnakemakeCtx:
+    requestSpotInstances: false
+    engines:
+      - type: snakemake
+        engine: snakemake
+  spotSnakemakeCtx:
+    requestSpotInstances: true
+    engines:
+      - type: snakemake
+        engine: snakemake
+  testSnakemakeCtx:
+    requestSpotInstances: true
+    engines:
+      - type: snakemake
+        engine: snakemake

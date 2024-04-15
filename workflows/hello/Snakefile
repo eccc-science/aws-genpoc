@@ -1,0 +1,14 @@
+
+# based on https://github.com/snakemake/snakemake/issues/790
+rule collect:
+    input:
+        "101.sleep", "102.sleep", "103.sleep", "104.sleep", "105.sleep"
+
+rule sleep:
+    resources:
+        mem_mb=16384,
+        _cores=8,
+    output:
+        "{seconds}.sleep"
+    shell:
+        "sleep {wildcards.seconds} > {output:q}"

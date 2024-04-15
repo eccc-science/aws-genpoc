@@ -1,0 +1,2074 @@
+{
+ "Parameters": {
+  "ListParamInfraSubnets": {
+   "Type": "AWS::SSM::Parameter::Value<List<String>>",
+   "Default": "/agc/_common/InfraSubnets"
+  },
+  "SsmParameterValueagccommonComputeEnvImageC96584B6F00A464EAD1953AFF4B05118Parameter": {
+   "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+   "Default": "/agc/_common/ComputeEnvImage"
+  },
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/agc/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Resources": {
+  "snakemakeHeadBatchBatchRole1EEA777F": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AmazonSSMManagedInstanceCore"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/CloudWatchAgentServerPolicy"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/HeadBatch/BatchRole/Resource"
+   }
+  },
+  "snakemakeHeadBatchBatchRoleDefaultPolicy1F440A7F": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "elasticfilesystem:DescribeMountTargets",
+        "elasticfilesystem:DescribeFileSystems"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "snakemakeSnakemakeEngineFileSystem91283949",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage"
+       ],
+       "Effect": "Allow",
+       "Resource": "arn:aws:ecr:ca-central-1:680431765560:repository/aws/snakemake-mirror"
+      },
+      {
+       "Action": "ecr:GetAuthorizationToken",
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "elasticfilesystem:DescribeAccessPoints",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":elasticfilesystem:ca-central-1:852085885259:access-point/",
+          {
+           "Ref": "snakemakeSnakemakeEngineAccessPointA281F654"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "batch:TagResource",
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "iam:PassRole",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "snakemakeHeadBatchBatchRole1EEA777F",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": "batch:TerminateJob",
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "batch:SubmitJob",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Ref": "snakemakeTaskBatchJobQueueB8BC6EB7"
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":batch:ca-central-1:852085885259:job-definition/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::agc-852085885259-ca-central-1"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::agc-852085885259-ca-central-1/mydata/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::agc-852085885259-ca-central-1"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::agc-852085885259-ca-central-1/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*",
+        "s3:DeleteObject*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging",
+        "s3:Abort*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::agc-852085885259-ca-central-1"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::agc-852085885259-ca-central-1/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "snakemakeHeadBatchBatchRoleDefaultPolicy1F440A7F",
+    "Roles": [
+     {
+      "Ref": "snakemakeHeadBatchBatchRole1EEA777F"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/HeadBatch/BatchRole/DefaultPolicy/Resource"
+   }
+  },
+  "snakemakeHeadBatchComputeEnvironmentResourceSecurityGroupF0F01EB6": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/HeadBatch/ComputeEnvironment/Resource-Security-Group",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "VpcId": "vpc-03237ac9dd4867978"
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/HeadBatch/ComputeEnvironment/Resource-Security-Group/Resource"
+   }
+  },
+  "snakemakeHeadBatchComputeEnvironmentResourceServiceInstanceRoleEA92A1A0": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "batch.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSBatchServiceRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/HeadBatch/ComputeEnvironment/Resource-Service-Instance-Role/Resource"
+   }
+  },
+  "snakemakeHeadBatchComputeEnvironmentB190F486": {
+   "Type": "AWS::Batch::ComputeEnvironment",
+   "Properties": {
+    "Type": "MANAGED",
+    "ComputeResources": {
+     "MaxvCpus": 256,
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "snakemakeHeadBatchComputeEnvironmentResourceSecurityGroupF0F01EB6",
+        "GroupId"
+       ]
+      }
+     ],
+     "Subnets": [
+      {
+       "Fn::Select": [
+        0,
+        {
+         "Ref": "ListParamInfraSubnets"
+        }
+       ]
+      },
+      {
+       "Fn::Select": [
+        1,
+        {
+         "Ref": "ListParamInfraSubnets"
+        }
+       ]
+      },
+      {
+       "Fn::Select": [
+        2,
+        {
+         "Ref": "ListParamInfraSubnets"
+        }
+       ]
+      }
+     ],
+     "Type": "FARGATE"
+    },
+    "ServiceRole": {
+     "Fn::GetAtt": [
+      "snakemakeHeadBatchComputeEnvironmentResourceServiceInstanceRoleEA92A1A0",
+      "Arn"
+     ]
+    },
+    "State": "ENABLED"
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/HeadBatch/ComputeEnvironment/Resource"
+   }
+  },
+  "snakemakeHeadBatchJobQueueD6A3F0AE": {
+   "Type": "AWS::Batch::JobQueue",
+   "Properties": {
+    "ComputeEnvironmentOrder": [
+     {
+      "ComputeEnvironment": {
+       "Ref": "snakemakeHeadBatchComputeEnvironmentB190F486"
+      },
+      "Order": 1
+     }
+    ],
+    "Priority": 1,
+    "State": "ENABLED"
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/HeadBatch/JobQueue/Resource"
+   }
+  },
+  "snakemakeTaskBatchBatchRole535F2634": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "ec2.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AmazonSSMManagedInstanceCore"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/CloudWatchAgentServerPolicy"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+       ]
+      ]
+     }
+    ],
+    "Policies": [
+     {
+      "PolicyDocument": {
+       "Statement": [
+        {
+         "Action": [
+          "ec2:DescribeVolumes",
+          "ec2:CreateVolume",
+          "ec2:CreateTags"
+         ],
+         "Effect": "Allow",
+         "Resource": {
+          "Fn::Join": [
+           "",
+           [
+            "arn:",
+            {
+             "Ref": "AWS::Partition"
+            },
+            ":ec2:ca-central-1:852085885259:volume/*"
+           ]
+          ]
+         }
+        },
+        {
+         "Action": [
+          "ec2:AttachVolume",
+          "ec2:ModifyInstanceAttribute"
+         ],
+         "Effect": "Allow",
+         "Resource": [
+          {
+           "Fn::Join": [
+            "",
+            [
+             "arn:",
+             {
+              "Ref": "AWS::Partition"
+             },
+             ":ec2:ca-central-1:852085885259:instance/*"
+            ]
+           ]
+          },
+          {
+           "Fn::Join": [
+            "",
+            [
+             "arn:",
+             {
+              "Ref": "AWS::Partition"
+             },
+             ":ec2:ca-central-1:852085885259:volume/*"
+            ]
+           ]
+          }
+         ]
+        },
+        {
+         "Action": "ec2:DeleteVolume",
+         "Condition": {
+          "StringEquals": {
+           "aws:ResourceTag/application-name": "agc"
+          }
+         },
+         "Effect": "Allow",
+         "Resource": {
+          "Fn::Join": [
+           "",
+           [
+            "arn:",
+            {
+             "Ref": "AWS::Partition"
+            },
+            ":ec2:ca-central-1:852085885259:volume/*"
+           ]
+          ]
+         }
+        }
+       ],
+       "Version": "2012-10-17"
+      },
+      "PolicyName": "ebs-autoscaling"
+     },
+     {
+      "PolicyDocument": {
+       "Statement": [
+        {
+         "Action": "autoscaling:SetInstanceHealth",
+         "Effect": "Allow",
+         "Resource": "*"
+        }
+       ],
+       "Version": "2012-10-17"
+      },
+      "PolicyName": "instance-health"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/TaskBatch/BatchRole/Resource"
+   }
+  },
+  "snakemakeTaskBatchBatchRoleDefaultPolicy82D8E115": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "elasticfilesystem:DescribeMountTargets",
+        "elasticfilesystem:DescribeFileSystems"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "snakemakeSnakemakeEngineFileSystem91283949",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::agc-852085885259-ca-central-1"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::agc-852085885259-ca-central-1/mydata/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::agc-852085885259-ca-central-1"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::agc-852085885259-ca-central-1/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*",
+        "s3:DeleteObject*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging",
+        "s3:Abort*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::agc-852085885259-ca-central-1"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::agc-852085885259-ca-central-1/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "snakemakeTaskBatchBatchRoleDefaultPolicy82D8E115",
+    "Roles": [
+     {
+      "Ref": "snakemakeTaskBatchBatchRole535F2634"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/TaskBatch/BatchRole/DefaultPolicy/Resource"
+   }
+  },
+  "snakemakeTaskBatchLaunchTemplateAD5330FA": {
+   "Type": "AWS::EC2::LaunchTemplate",
+   "Properties": {
+    "LaunchTemplateData": {
+     "TagSpecifications": [
+      {
+       "ResourceType": "volume",
+       "Tags": [
+        {
+         "Key": "agc-context",
+         "Value": "onDemandSnakeMakeCtx"
+        },
+        {
+         "Key": "agc-engine",
+         "Value": "snakemake"
+        },
+        {
+         "Key": "agc-engine-type",
+         "Value": "snakemake"
+        },
+        {
+         "Key": "agc-project",
+         "Value": "GenPoc"
+        },
+        {
+         "Key": "agc-user-email",
+         "Value": "john.nephin@ssc-spc.gc.ca"
+        },
+        {
+         "Key": "agc-user-id",
+         "Value": "johnnephin3oRHOk"
+        },
+        {
+         "Key": "agc-version",
+         "Value": "1.6.0"
+        },
+        {
+         "Key": "application-name",
+         "Value": "agc"
+        }
+       ]
+      }
+     ],
+     "UserData": {
+      "Fn::Base64": "MIME-Version: 1.0\nContent-Type: multipart/mixed; boundary=\"==MYBOUNDARY==\"\n\n--==MYBOUNDARY==\nContent-Type: text/cloud-config; charset=\"us-ascii\"\n\npackages:\n- jq\n- grep\n- btrfs-progs\n- sed\n- git\n- unzip\n- amazon-cloudwatch-agent\n\nwrite_files:\n- permissions: '0644'\n  path: /opt/aws/amazon-cloudwatch-agent/etc/config.json\n  content: |\n    {\n      \"agent\": {\n        \"logfile\": \"/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log\"\n      },\n      \"logs\": {\n        \"logs_collected\": {\n          \"files\": {\n            \"collect_list\": [\n              {\n                \"file_path\": \"/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log\",\n                \"log_group_name\": \"/aws/ecs/container-instance/agc\",\n                \"log_stream_name\": \"/aws/ecs/container-instance/agc/{instance_id}/amazon-cloudwatch-agent.log\"\n              },\n              {\n                \"file_path\": \"/var/log/cloud-init.log\",\n                \"log_group_name\": \"/aws/ecs/container-instance/agc\",\n                \"log_stream_name\": \"/aws/ecs/container-instance/agc/{instance_id}/cloud-init.log\"\n              },\n              {\n                \"file_path\": \"/var/log/cloud-init-output.log\",\n                \"log_group_name\": \"/aws/ecs/container-instance/agc\",\n                \"log_stream_name\": \"/aws/ecs/container-instance/agc/{instance_id}/cloud-init-output.log\"\n              },\n              {\n                \"file_path\": \"/var/log/ecs/ecs-init.log\",\n                \"log_group_name\": \"/aws/ecs/container-instance/agc\",\n                \"log_stream_name\": \"/aws/ecs/container-instance/agc/{instance_id}/ecs-init.log\"\n              },\n              {\n                \"file_path\": \"/var/log/ecs/ecs-agent.log\",\n                \"log_group_name\": \"/aws/ecs/container-instance/agc\",\n                \"log_stream_name\": \"/aws/ecs/container-instance/agc/{instance_id}/ecs-agent.log\"\n              },\n              {\n                \"file_path\": \"/var/log/ecs/ecs-volume-plugin.log\",\n                \"log_group_name\": \"/aws/ecs/container-instance/agc\",\n                \"log_stream_name\": \"/aws/ecs/container-instance/agc/{instance_id}/ecs-volume-plugin.log\"\n              }\n            ]\n          }\n        }\n      }\n    }\n\nruncmd:\n\n# start the amazon-cloudwatch-agent\n- /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/config.json\n- /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -m ec2 -a status | jq -r '.status' | grep -iw \"running\" || sleep 5 && /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/config.json\n- /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -m ec2 -a status | jq -r '.status' | grep -iw \"running\" || sleep 10 && /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/config.json\n- /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -m ec2 -a status | jq -r '.status' | grep -iw \"running\" || shutdown -P now\n\n# install aws-cli v2 and copy the static binary in an easy to find location for bind-mounts into containers\n- mkdir -p /opt/aws-cli/bin\n- curl -s --fail --retry 3 --retry-connrefused \"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\" -o \"/tmp/awscliv2.zip\" && unzip -q /tmp/awscliv2.zip -d /tmp && /tmp/aws/install -b /usr/bin && cp -a -f $(dirname $(find /usr/local/aws-cli -name 'aws' -type f))/. /opt/aws-cli/bin/\n- command -v aws || sleep 5 && curl -s --fail --retry 3 --retry-connrefused \"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\" -o \"/tmp/awscliv2.zip\" && unzip -q /tmp/awscliv2.zip -d /tmp && /tmp/aws/install -b /usr/bin && cp -a -f $(dirname $(find /usr/local/aws-cli -name 'aws' -type f))/. /opt/aws-cli/bin/\n- command -v aws || sleep 10 && curl -s --fail --retry 3 --retry-connrefused \"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\" -o \"/tmp/awscliv2.zip\" && unzip -q /tmp/awscliv2.zip -d /tmp && /tmp/aws/install -b /usr/bin && cp -a -f $(dirname $(find /usr/local/aws-cli -name 'aws' -type f))/. /opt/aws-cli/bin/\n- command -v aws || echo \"Unable to install AWS CLI v2\"\n\n# set environment variables for provisioning\n- export ARTIFACTS_NAMESPACE=agc\n- echo \"ARTIFACTS_NAMESPACE = $ARTIFACTS_NAMESPACE\"\n- export INSTALLED_ARTIFACTS_S3_ROOT_URL=$(aws ssm get-parameter --name /${ARTIFACTS_NAMESPACE}/_common/installed-artifacts/s3-root-url --query 'Parameter.Value' --output text)\n- echo \"INSTALLED_ARTIFACTS_S3_ROOT_URL = $INSTALLED_ARTIFACTS_S3_ROOT_URL\"\n- export WORKFLOW_ORCHESTRATOR=snakemake\n- echo \"WORKFLOW_ORCHESTRATOR = $WORKFLOW_ORCHESTRATOR\"\n\n# enable ecs spot instance draining\n- echo ECS_ENABLE_SPOT_INSTANCE_DRAINING=true >> /etc/ecs/ecs.config\n\n# pull docker images only if missing\n- echo ECS_IMAGE_PULL_BEHAVIOR=prefer-cached >> /etc/ecs/ecs.config\n\n# Setup ecs additions\n- echo \"setting up ecs additions\"\n- mkdir -p /opt\n- cd /opt\n- echo \"syncing ecs additions from $INSTALLED_ARTIFACTS_S3_ROOT_URL/ecs-additions/\"\n- aws s3 sync ${INSTALLED_ARTIFACTS_S3_ROOT_URL}/ecs-additions/ ./ecs-additions && chmod a+x /opt/ecs-additions/provision.sh  \n- test -f ./ecs-additions/fetch_and_run.sh || sleep 5 && aws s3 sync ${INSTALLED_ARTIFACTS_S3_ROOT_URL}/ecs-additions/ ./ecs-additions && chmod a+x /opt/ecs-additions/provision.sh    \n- test -f ./ecs-additions/fetch_and_run.sh || sleep 10 && aws s3 sync ${INSTALLED_ARTIFACTS_S3_ROOT_URL}/ecs-additions/ ./ecs-additions && chmod a+x /opt/ecs-additions/provision.sh    \n- test -f ./ecs-additions/fetch_and_run.sh || echo \"Unable to install ecs-additions\"\n- echo \"running provision script\"\n- /opt/ecs-additions/provision.sh\n- echo \"provision script completed with return code $?\"\n--==MYBOUNDARY==--\n"
+     }
+    },
+    "LaunchTemplateName": "AgcContextGenPocjohnnephin3oRHOkonDemandSnakeMakeCtxsnakemakeTaskBatch43B25AFF"
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/TaskBatch/LaunchTemplate"
+   }
+  },
+  "snakemakeTaskBatchComputeProfileEE0AC2FB": {
+   "Type": "AWS::IAM::InstanceProfile",
+   "Properties": {
+    "Roles": [
+     {
+      "Ref": "snakemakeTaskBatchBatchRole535F2634"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/TaskBatch/ComputeProfile"
+   }
+  },
+  "snakemakeTaskBatchComputeEnvironmentResourceSecurityGroupDBC83323": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/TaskBatch/ComputeEnvironment/Resource-Security-Group",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "VpcId": "vpc-03237ac9dd4867978"
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/TaskBatch/ComputeEnvironment/Resource-Security-Group/Resource"
+   }
+  },
+  "snakemakeTaskBatchComputeEnvironmentResourceServiceInstanceRole8C5DBBE0": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "batch.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSBatchServiceRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/TaskBatch/ComputeEnvironment/Resource-Service-Instance-Role/Resource"
+   }
+  },
+  "snakemakeTaskBatchComputeEnvironment64479216": {
+   "Type": "AWS::Batch::ComputeEnvironment",
+   "Properties": {
+    "Type": "MANAGED",
+    "ComputeResources": {
+     "AllocationStrategy": "BEST_FIT",
+     "ImageId": {
+      "Ref": "SsmParameterValueagccommonComputeEnvImageC96584B6F00A464EAD1953AFF4B05118Parameter"
+     },
+     "InstanceRole": {
+      "Fn::GetAtt": [
+       "snakemakeTaskBatchComputeProfileEE0AC2FB",
+       "Arn"
+      ]
+     },
+     "InstanceTypes": [
+      "c5.large",
+      "c5.xlarge",
+      "c5.2xlarge",
+      "c5.4xlarge",
+      "c5a.large",
+      "c5a.xlarge",
+      "c5a.2xlarge",
+      "c5a.4xlarge",
+      "c5n.large",
+      "c5n.xlarge",
+      "c5n.2xlarge",
+      "c5n.4xlarge",
+      "m5.large",
+      "m5.xlarge",
+      "m5.2xlarge",
+      "m5.4xlarge",
+      "m5a.large",
+      "m5a.xlarge",
+      "m5a.2xlarge",
+      "m5a.4xlarge",
+      "r5.large",
+      "r5.xlarge",
+      "r5.2xlarge",
+      "r5.4xlarge",
+      "r5a.large",
+      "r5a.xlarge",
+      "r5a.2xlarge",
+      "r5a.4xlarge",
+      "r5n.large",
+      "r5n.xlarge",
+      "r5n.2xlarge",
+      "r5n.4xlarge"
+     ],
+     "LaunchTemplate": {
+      "LaunchTemplateName": "AgcContextGenPocjohnnephin3oRHOkonDemandSnakeMakeCtxsnakemakeTaskBatch43B25AFF"
+     },
+     "MaxvCpus": 256,
+     "MinvCpus": 0,
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "snakemakeTaskBatchComputeEnvironmentResourceSecurityGroupDBC83323",
+        "GroupId"
+       ]
+      }
+     ],
+     "Subnets": [
+      {
+       "Fn::Select": [
+        0,
+        {
+         "Ref": "ListParamInfraSubnets"
+        }
+       ]
+      },
+      {
+       "Fn::Select": [
+        1,
+        {
+         "Ref": "ListParamInfraSubnets"
+        }
+       ]
+      },
+      {
+       "Fn::Select": [
+        2,
+        {
+         "Ref": "ListParamInfraSubnets"
+        }
+       ]
+      }
+     ],
+     "Tags": {
+      "agc-context": "onDemandSnakeMakeCtx",
+      "agc-engine": "snakemake",
+      "agc-engine-type": "snakemake",
+      "agc-project": "GenPoc",
+      "agc-user-email": "john.nephin@ssc-spc.gc.ca",
+      "agc-user-id": "johnnephin3oRHOk",
+      "agc-version": "1.6.0",
+      "application-name": "agc"
+     },
+     "Type": "EC2"
+    },
+    "ServiceRole": {
+     "Fn::GetAtt": [
+      "snakemakeTaskBatchComputeEnvironmentResourceServiceInstanceRole8C5DBBE0",
+      "Arn"
+     ]
+    },
+    "State": "ENABLED"
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/TaskBatch/ComputeEnvironment/Resource"
+   }
+  },
+  "snakemakeTaskBatchJobQueueB8BC6EB7": {
+   "Type": "AWS::Batch::JobQueue",
+   "Properties": {
+    "ComputeEnvironmentOrder": [
+     {
+      "ComputeEnvironment": {
+       "Ref": "snakemakeTaskBatchComputeEnvironment64479216"
+      },
+      "Order": 1
+     }
+    ],
+    "Priority": 1,
+    "State": "ENABLED"
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/TaskBatch/JobQueue/Resource"
+   }
+  },
+  "snakemakeSnakemakeEngineEngineLogGroup5BB61997": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 731
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeEngine/EngineLogGroup/Resource"
+   }
+  },
+  "snakemakeSnakemakeEngineFileSystem91283949": {
+   "Type": "AWS::EFS::FileSystem",
+   "Properties": {
+    "Encrypted": true,
+    "FileSystemTags": [
+     {
+      "Key": "Name",
+      "Value": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeEngine/FileSystem"
+     }
+    ],
+    "PerformanceMode": "maxIO",
+    "ThroughputMode": "bursting"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeEngine/FileSystem/Resource"
+   }
+  },
+  "snakemakeSnakemakeEngineFileSystemEfsSecurityGroupC87BE423": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeEngine/FileSystem/EfsSecurityGroup",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "SecurityGroupIngress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "from 0.0.0.0/0:2049",
+      "FromPort": 2049,
+      "IpProtocol": "tcp",
+      "ToPort": 2049
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeEngine/FileSystem"
+     }
+    ],
+    "VpcId": "vpc-03237ac9dd4867978"
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeEngine/FileSystem/EfsSecurityGroup/Resource"
+   }
+  },
+  "snakemakeSnakemakeEngineFileSystemEfsMountTarget11F59CA14": {
+   "Type": "AWS::EFS::MountTarget",
+   "Properties": {
+    "FileSystemId": {
+     "Ref": "snakemakeSnakemakeEngineFileSystem91283949"
+    },
+    "SecurityGroups": [
+     {
+      "Fn::GetAtt": [
+       "snakemakeSnakemakeEngineFileSystemEfsSecurityGroupC87BE423",
+       "GroupId"
+      ]
+     }
+    ],
+    "SubnetId": {
+     "Fn::Select": [
+      0,
+      {
+       "Ref": "ListParamInfraSubnets"
+      }
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeEngine/FileSystem/EfsMountTarget1"
+   }
+  },
+  "snakemakeSnakemakeEngineFileSystemEfsMountTarget28A00C8BA": {
+   "Type": "AWS::EFS::MountTarget",
+   "Properties": {
+    "FileSystemId": {
+     "Ref": "snakemakeSnakemakeEngineFileSystem91283949"
+    },
+    "SecurityGroups": [
+     {
+      "Fn::GetAtt": [
+       "snakemakeSnakemakeEngineFileSystemEfsSecurityGroupC87BE423",
+       "GroupId"
+      ]
+     }
+    ],
+    "SubnetId": {
+     "Fn::Select": [
+      1,
+      {
+       "Ref": "ListParamInfraSubnets"
+      }
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeEngine/FileSystem/EfsMountTarget2"
+   }
+  },
+  "snakemakeSnakemakeEngineFileSystemEfsMountTarget3852409BB": {
+   "Type": "AWS::EFS::MountTarget",
+   "Properties": {
+    "FileSystemId": {
+     "Ref": "snakemakeSnakemakeEngineFileSystem91283949"
+    },
+    "SecurityGroups": [
+     {
+      "Fn::GetAtt": [
+       "snakemakeSnakemakeEngineFileSystemEfsSecurityGroupC87BE423",
+       "GroupId"
+      ]
+     }
+    ],
+    "SubnetId": {
+     "Fn::Select": [
+      2,
+      {
+       "Ref": "ListParamInfraSubnets"
+      }
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeEngine/FileSystem/EfsMountTarget3"
+   }
+  },
+  "snakemakeSnakemakeEngineAccessPointA281F654": {
+   "Type": "AWS::EFS::AccessPoint",
+   "Properties": {
+    "FileSystemId": {
+     "Ref": "snakemakeSnakemakeEngineFileSystem91283949"
+    },
+    "PosixUser": {
+     "Gid": "0",
+     "Uid": "0"
+    },
+    "RootDirectory": {}
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeEngine/AccessPoint/Resource"
+   }
+  },
+  "snakemakeSnakemakeEngineSnakemakeHeadJobDef9A413265": {
+   "Type": "AWS::Batch::JobDefinition",
+   "Properties": {
+    "Type": "container",
+    "ContainerProperties": {
+     "Command": [],
+     "Environment": [
+      {
+       "Name": "AWS_METADATA_SERVICE_TIMEOUT",
+       "Value": "10"
+      },
+      {
+       "Name": "AWS_METADATA_SERVICE_NUM_ATTEMPTS",
+       "Value": "10"
+      },
+      {
+       "Name": "SM__AWS__FS",
+       "Value": {
+        "Ref": "snakemakeSnakemakeEngineFileSystem91283949"
+       }
+      },
+      {
+       "Name": "SM__AWS__FSAP",
+       "Value": {
+        "Ref": "snakemakeSnakemakeEngineAccessPointA281F654"
+       }
+      },
+      {
+       "Name": "SM__AWS__TASK_QUEUE",
+       "Value": {
+        "Ref": "snakemakeTaskBatchJobQueueB8BC6EB7"
+       }
+      },
+      {
+       "Name": "SM_S3_OUTPUT_URI",
+       "Value": "s3://agc-852085885259-ca-central-1/project/GenPoc/userid/johnnephin3oRHOk/context/onDemandSnakeMakeCtx/snakemake-execution"
+      },
+      {
+       "Name": "AWS_REGION",
+       "Value": "ca-central-1"
+      },
+      {
+       "Name": "AWS_ACCOUNT",
+       "Value": "852085885259"
+      }
+     ],
+     "ExecutionRoleArn": {
+      "Fn::GetAtt": [
+       "snakemakeHeadBatchBatchRole1EEA777F",
+       "Arn"
+      ]
+     },
+     "FargatePlatformConfiguration": {
+      "PlatformVersion": "1.4.0"
+     },
+     "Image": {
+      "Fn::Join": [
+       "",
+       [
+        "680431765560.dkr.ecr.ca-central-1.",
+        {
+         "Ref": "AWS::URLSuffix"
+        },
+        "/aws/snakemake-mirror:internal-fork"
+       ]
+      ]
+     },
+     "JobRoleArn": {
+      "Fn::GetAtt": [
+       "snakemakeHeadBatchBatchRole1EEA777F",
+       "Arn"
+      ]
+     },
+     "LogConfiguration": {
+      "LogDriver": "awslogs",
+      "Options": {
+       "awslogs-group": {
+        "Ref": "snakemakeSnakemakeEngineEngineLogGroup5BB61997"
+       }
+      }
+     },
+     "MountPoints": [
+      {
+       "ContainerPath": "/mnt/efs",
+       "ReadOnly": false,
+       "SourceVolume": "efs"
+      }
+     ],
+     "Privileged": false,
+     "ReadonlyRootFilesystem": false,
+     "ResourceRequirements": [
+      {
+       "Type": "VCPU",
+       "Value": "16"
+      },
+      {
+       "Type": "MEMORY",
+       "Value": "32768"
+      }
+     ],
+     "Volumes": [
+      {
+       "EfsVolumeConfiguration": {
+        "AuthorizationConfig": {
+         "AccessPointId": {
+          "Ref": "snakemakeSnakemakeEngineAccessPointA281F654"
+         },
+         "Iam": "ENABLED"
+        },
+        "FileSystemId": {
+         "Ref": "snakemakeSnakemakeEngineFileSystem91283949"
+        },
+        "TransitEncryption": "ENABLED"
+       },
+       "Name": "efs"
+      }
+     ]
+    },
+    "PlatformCapabilities": [
+     "FARGATE"
+    ],
+    "RetryStrategy": {
+     "Attempts": 1
+    },
+    "Timeout": {}
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeEngine/SnakemakeHeadJobDef/Resource"
+   }
+  },
+  "snakemakeHeadJobBatchPolicyE4E74247": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "batch:Describe*",
+        "batch:ListJobs"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "batch:RegisterJobDefinition",
+        "batch:DeregisterJobDefinition"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":batch:ca-central-1:852085885259:job-definition/*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "snakemakeHeadJobBatchPolicyE4E74247",
+    "Roles": [
+     {
+      "Ref": "snakemakeHeadBatchBatchRole1EEA777F"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/HeadJobBatchPolicy/Resource"
+   }
+  },
+  "snakemakeSnakemakeAdapterRole2EB8A90D": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Policies": [
+     {
+      "PolicyDocument": {
+       "Statement": [
+        {
+         "Action": [
+          "batch:Describe*",
+          "batch:ListJobs"
+         ],
+         "Effect": "Allow",
+         "Resource": "*"
+        },
+        {
+         "Action": "tag:GetResources",
+         "Condition": {
+          "ForAllValues:StringEquals": {
+           "aws:TagKeys": [
+            "AWS_BATCH_PARENT_JOB_ID"
+           ]
+          }
+         },
+         "Effect": "Allow",
+         "Resource": "*"
+        },
+        {
+         "Action": "batch:TerminateJob",
+         "Condition": {
+          "ForAllValues:StringEquals": {
+           "aws:TagKeys": [
+            "AWS_BATCH_PARENT_JOB_ID"
+           ]
+          }
+         },
+         "Effect": "Allow",
+         "Resource": "*"
+        }
+       ],
+       "Version": "2012-10-17"
+      },
+      "PolicyName": "SnakemakeAdapterPolicy"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeAdapterRole/Resource"
+   }
+  },
+  "snakemakeSnakemakeAdapterRoleDefaultPolicyAEE99FF2": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::agc-852085885259-ca-central-1"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::agc-852085885259-ca-central-1/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "batch:SubmitJob",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Ref": "snakemakeHeadBatchJobQueueD6A3F0AE"
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":batch:ca-central-1:852085885259:job-definition/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "snakemakeSnakemakeAdapterRoleDefaultPolicyAEE99FF2",
+    "Roles": [
+     {
+      "Ref": "snakemakeSnakemakeAdapterRole2EB8A90D"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeAdapterRole/DefaultPolicy/Resource"
+   }
+  },
+  "snakemakeSnakemakeWesAdapterLambdaSecurityGroup0F64D2AA": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatic security group for Lambda Function AgcContextGenPocjohnnephin3oRHOkonDemandSnakeMakeCtxsnakemakeSnakemakeWesAdapterLambda84B1FED7",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "VpcId": "vpc-03237ac9dd4867978"
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeWesAdapterLambda/SecurityGroup/Resource"
+   }
+  },
+  "snakemakeSnakemakeWesAdapterLambdaC8C2C86E": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::ImportValue": "WesAdapterZipBucket"
+     },
+     "S3Key": "8dc84929c65279fc0d138e0e0951f840bba5908fca5da373d2aa2384f03159e0.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "snakemakeSnakemakeAdapterRole2EB8A90D",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "ENGINE_NAME": "snakemake",
+      "JOB_QUEUE": {
+       "Ref": "snakemakeHeadBatchJobQueueD6A3F0AE"
+      },
+      "JOB_DEFINITION": {
+       "Ref": "snakemakeSnakemakeEngineSnakemakeHeadJobDef9A413265"
+      },
+      "TASK_QUEUE": {
+       "Ref": "snakemakeTaskBatchJobQueueB8BC6EB7"
+      },
+      "WORKFLOW_ROLE": {
+       "Fn::GetAtt": [
+        "snakemakeHeadBatchBatchRole1EEA777F",
+        "Arn"
+       ]
+      },
+      "FSAP_ID": {
+       "Ref": "snakemakeSnakemakeEngineAccessPointA281F654"
+      },
+      "OUTPUT_DIR_S3_URI": "s3://agc-852085885259-ca-central-1/project/GenPoc/userid/johnnephin3oRHOk/context/onDemandSnakeMakeCtx/snakemake-execution",
+      "TIME": "1705354964239"
+     }
+    },
+    "Handler": "index.handler",
+    "MemorySize": 256,
+    "Runtime": "python3.9",
+    "Timeout": 60,
+    "VpcConfig": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "snakemakeSnakemakeWesAdapterLambdaSecurityGroup0F64D2AA",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      {
+       "Fn::Select": [
+        0,
+        {
+         "Ref": "ListParamInfraSubnets"
+        }
+       ]
+      },
+      {
+       "Fn::Select": [
+        1,
+        {
+         "Ref": "ListParamInfraSubnets"
+        }
+       ]
+      },
+      {
+       "Fn::Select": [
+        2,
+        {
+         "Ref": "ListParamInfraSubnets"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   "DependsOn": [
+    "snakemakeSnakemakeAdapterRoleDefaultPolicyAEE99FF2",
+    "snakemakeSnakemakeAdapterRole2EB8A90D"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeWesAdapterLambda/Resource"
+   }
+  },
+  "snakemakeSnakemakeWesAdapterLambdaLogRetention8339B93B": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "snakemakeSnakemakeWesAdapterLambdaC8C2C86E"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/SnakemakeWesAdapterLambda/LogRetention/Resource"
+   }
+  },
+  "snakemakeApiProxyAccessLogGroup08D73863": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 731
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/ApiProxy/AccessLogGroup/Resource"
+   }
+  },
+  "snakemakeApiProxy570DD4E1": {
+   "Type": "AWS::ApiGateway::RestApi",
+   "Properties": {
+    "ApiKeySourceType": "HEADER",
+    "Description": "API proxy endpoint for a service",
+    "EndpointConfiguration": {
+     "Types": [
+      "REGIONAL"
+     ]
+    },
+    "Name": "GenPocjohnnephin3oRHOkonDemandSnakeMakeCtxSnakemakeApiProxy",
+    "Policy": {
+     "Statement": [
+      {
+       "Action": "execute-api:Invoke",
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":iam::",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":root"
+          ]
+         ]
+        }
+       },
+       "Resource": "execute-api:/*/*"
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/ApiProxy/Resource/Resource"
+   }
+  },
+  "snakemakeApiProxyCloudWatchRole6E069EC0": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "apigateway.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+       ]
+      ]
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/ApiProxy/Resource/CloudWatchRole/Resource"
+   }
+  },
+  "snakemakeApiProxyAccountDF57DC60": {
+   "Type": "AWS::ApiGateway::Account",
+   "Properties": {
+    "CloudWatchRoleArn": {
+     "Fn::GetAtt": [
+      "snakemakeApiProxyCloudWatchRole6E069EC0",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "snakemakeApiProxy570DD4E1"
+   ],
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/ApiProxy/Resource/Account"
+   }
+  },
+  "snakemakeApiProxyDeploymentB03649C366d0238564efbec1fa94a87d769ee6fb": {
+   "Type": "AWS::ApiGateway::Deployment",
+   "Properties": {
+    "RestApiId": {
+     "Ref": "snakemakeApiProxy570DD4E1"
+    },
+    "Description": "API proxy endpoint for a service"
+   },
+   "DependsOn": [
+    "snakemakeApiProxyproxyANY60D6644C",
+    "snakemakeApiProxyproxy4FFE4948",
+    "snakemakeApiProxyANY66F1FBAC"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/ApiProxy/Resource/Deployment/Resource"
+   }
+  },
+  "snakemakeApiProxyDeploymentStageprod7F3D360B": {
+   "Type": "AWS::ApiGateway::Stage",
+   "Properties": {
+    "RestApiId": {
+     "Ref": "snakemakeApiProxy570DD4E1"
+    },
+    "AccessLogSetting": {
+     "DestinationArn": {
+      "Fn::GetAtt": [
+       "snakemakeApiProxyAccessLogGroup08D73863",
+       "Arn"
+      ]
+     },
+     "Format": "{\"requestId\":\"$context.requestId\",\"caller\":\"$context.identity.caller\",\"callerAccountId\":\"$context.identity.accountId\",\"user\":\"$context.identity.user\",\"requestTime\":\"$context.requestTime\",\"httpMethod\":\"$context.httpMethod\",\"resourcePath\":\"$context.resourcePath\",\"status\":\"$context.status\",\"protocol\":\"$context.protocol\",\"responseLength\":\"$context.responseLength\",\"message\":\"$context.error.message\",\"validationError\":\"$context.error.validationErrorString\"}"
+    },
+    "DeploymentId": {
+     "Ref": "snakemakeApiProxyDeploymentB03649C366d0238564efbec1fa94a87d769ee6fb"
+    },
+    "MethodSettings": [
+     {
+      "DataTraceEnabled": true,
+      "HttpMethod": "*",
+      "LoggingLevel": "INFO",
+      "ResourcePath": "/*"
+     }
+    ],
+    "StageName": "prod"
+   },
+   "DependsOn": [
+    "snakemakeApiProxyAccountDF57DC60"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/ApiProxy/Resource/DeploymentStage.prod/Resource"
+   }
+  },
+  "snakemakeApiProxyproxy4FFE4948": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "snakemakeApiProxy570DD4E1",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "{proxy+}",
+    "RestApiId": {
+     "Ref": "snakemakeApiProxy570DD4E1"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/ApiProxy/Resource/Default/{proxy+}/Resource"
+   }
+  },
+  "snakemakeApiProxyproxyANYApiPermissionAgcContextGenPocjohnnephin3oRHOkonDemandSnakeMakeCtxsnakemakeApiProxy756B0EC1ANYproxyCA3FD5F1": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "snakemakeSnakemakeWesAdapterLambdaC8C2C86E",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:ca-central-1:852085885259:",
+       {
+        "Ref": "snakemakeApiProxy570DD4E1"
+       },
+       "/",
+       {
+        "Ref": "snakemakeApiProxyDeploymentStageprod7F3D360B"
+       },
+       "/*/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/ApiProxy/Resource/Default/{proxy+}/ANY/ApiPermission.AgcContextGenPocjohnnephin3oRHOkonDemandSnakeMakeCtxsnakemakeApiProxy756B0EC1.ANY..{proxy+}"
+   }
+  },
+  "snakemakeApiProxyproxyANYApiPermissionTestAgcContextGenPocjohnnephin3oRHOkonDemandSnakeMakeCtxsnakemakeApiProxy756B0EC1ANYproxy2E3B9EC9": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "snakemakeSnakemakeWesAdapterLambdaC8C2C86E",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:ca-central-1:852085885259:",
+       {
+        "Ref": "snakemakeApiProxy570DD4E1"
+       },
+       "/test-invoke-stage/*/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/ApiProxy/Resource/Default/{proxy+}/ANY/ApiPermission.Test.AgcContextGenPocjohnnephin3oRHOkonDemandSnakeMakeCtxsnakemakeApiProxy756B0EC1.ANY..{proxy+}"
+   }
+  },
+  "snakemakeApiProxyproxyANY60D6644C": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "ANY",
+    "ResourceId": {
+     "Ref": "snakemakeApiProxyproxy4FFE4948"
+    },
+    "RestApiId": {
+     "Ref": "snakemakeApiProxy570DD4E1"
+    },
+    "AuthorizationType": "AWS_IAM",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:ca-central-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "snakemakeSnakemakeWesAdapterLambdaC8C2C86E",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "RequestParameters": {
+     "method.request.path.proxy": true
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/ApiProxy/Resource/Default/{proxy+}/ANY/Resource"
+   }
+  },
+  "snakemakeApiProxyANY66F1FBAC": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "ANY",
+    "ResourceId": {
+     "Fn::GetAtt": [
+      "snakemakeApiProxy570DD4E1",
+      "RootResourceId"
+     ]
+    },
+    "RestApiId": {
+     "Ref": "snakemakeApiProxy570DD4E1"
+    },
+    "AuthorizationType": "NONE",
+    "Integration": {
+     "Type": "MOCK"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/snakemake/ApiProxy/Resource/Default/ANY/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "logs:PutRetentionPolicy",
+        "logs:DeleteRetentionPolicy"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "Roles": [
+     {
+      "Ref": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Handler": "index.handler",
+    "Runtime": "nodejs14.x",
+    "Code": {
+     "S3Bucket": "cdk-agc-assets-852085885259-ca-central-1",
+     "S3Key": "eb5b005c858404ea0c8f68098ed5dcdf5340e02461f149751d10f59c210d5ef8.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource",
+    "aws:asset:path": "asset.eb5b005c858404ea0c8f68098ed5dcdf5340e02461f149751d10f59c210d5ef8",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/21SXW/bMAz8LXlX1KTDsD0uTbdhQ4t5bt8LRmEcNbZoiFQ7w/B/H618Y3viUXeWjjzf2o8z288m8M5Tt95Na7+y/ZOA25kSmVJ0aJabUECEBgWjUeFL76GxfUl15nItqPauy9IT+hFYIDgsIm18jYNBd6uXo0vRS/c9UmpH2T8HD5CC2z5j09Yg+tkKxG1tr8ySmjYJfg1vPlJoMMio/0mr3wkTHvA9bnzw4ikMpqaKbf9A1fnyI1ZQ6kRhL8SN6r6py6eOBZtRed09UgryDLFCMQvnkLkgv3//oh1njLbEltgLxe4OGPWI7ZKCgA8Yz+4Mf7B3ye1QsqqGZrUGNaHDZ3q0cIELjI1nzm6h9ZWu5h06jQFZFq3PSZyhehoNm3tsa+qOm7roNOMqb2wPjmFnKxrYn+4y/hN+RNnSOu8jo0GHeAFmFLaLsQxXcsW/kmhkJpPjUz5Ug5lNoW63YGeTL4cf72asOegD1f8n61PQ1ykPJtAa7SvfvM0/2/knO5+8svfTqAvwDdpyX/8CGHXWyOsCAAA="
+   },
+   "Metadata": {
+    "aws:cdk:path": "Agc-Context-GenPoc-johnnephin3oRHOk-onDemandSnakeMakeCtx/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "snakemakeApiProxyEndpoint7517D58A": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "snakemakeApiProxy570DD4E1"
+      },
+      ".execute-api.ca-central-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "snakemakeApiProxyDeploymentStageprod7F3D360B"
+      },
+      "/"
+     ]
+    ]
+   }
+  },
+  "AccessLogGroupName": {
+   "Value": {
+    "Ref": "snakemakeApiProxyAccessLogGroup08D73863"
+   }
+  },
+  "AdapterLogGroupName": {
+   "Value": {
+    "Fn::GetAtt": [
+     "snakemakeSnakemakeWesAdapterLambdaLogRetention8339B93B",
+     "LogGroupName"
+    ]
+   }
+  },
+  "EngineLogGroupName": {
+   "Value": {
+    "Ref": "snakemakeSnakemakeEngineEngineLogGroup5BB61997"
+   }
+  },
+  "WesUrl": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "snakemakeApiProxy570DD4E1"
+      },
+      ".execute-api.ca-central-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "snakemakeApiProxyDeploymentStageprod7F3D360B"
+      },
+      "/"
+     ]
+    ]
+   }
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

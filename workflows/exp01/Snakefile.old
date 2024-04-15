@@ -1,0 +1,68 @@
+
+# rule samtools_view:
+#     input:
+#        s3.remote("agc-852085885259-ca-central-1/mydata/{sample}.sam")
+#     output:
+#         bam="bam/{sample}.bam",
+#         idx="bam/{sample}.bai",
+#     log:
+#         "{sample}.log",
+#     params:
+#         extra="",  # optional params string
+#         region="",  # optional region string
+#     threads: 2
+#     wrapper:
+#         "v3.3.3/bio/samtools/view"
+
+
+# rule sam_to_bam:
+#     input:
+#         sam=expand("outputs/sam/{sample}.sam", sample=CONDITIONS)
+#     output:
+#         bam=expand("outputs/sam/{sample}.bam", sample=CONDITIONS)
+#     conda:
+#        "envs/environment.yaml",
+#     threads: 12
+#     resources:
+#        mem_mb=64000
+#     shell:
+#         "samtools view -Sb {input.sam} | samtools sort sort -@ 12 -m 5M -o {output.bam}"
+
+# rule index_bam:
+#     input:
+#         bam=rules.sam_to_bam.output.bam
+#     output:
+#         bai=expand("outputs/sam/{sample}.bai", sample=CONDITIONS)
+#     threads: 12
+#     resources:
+#        mem_mb=64000
+#     conda:
+#        "envs/environment.yaml",
+#     shell:
+#         "samtools index {input.bam}"
+
+
+#  Assuming we want the trimmed file.  Could use other tools to convert it to a sam file
+#rule reformat:
+#    input:
+#        r1="trimmed/{sample}_{req}.fastq"
+#    output:
+#        #r1=pipe("sam/{sample}_1.sam")
+#        r1="sam/{sample}_1.sam"
+#    conda:
+#       workflow_env
+#    shell:
+#        "reformat.sh in={input.r1} out={output.r1} overwrite=true"
+
+#Assembles fastq files using default settings
+# rule spades:
+#    input:
+#        r1 = expand("{trimmed}/output_forward_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
+#        r2 = expand("{trimmed}/output_reverse_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS)
+#    output:
+#        "spades_assemblies/{sample}/contigs.fasta"
+#    log: "logs/spades.{sample}.log"
+#    conda: "envs/spades.yaml"
+#    threads: 16
+#    shell:
+#       "spades.py -t {threads} -1 {input.r1} -2 {input.r2} -o spades_assemblies/{wildcards.sample} &>{log}"

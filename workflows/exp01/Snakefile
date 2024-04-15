@@ -1,0 +1,315 @@
+# NOTE: caching as specified in the MANIFEST does not work with snakemake wrappers.  If you use them it installs the environment each time.
+
+
+# Snakemake file for running FastQC on all files in the mydata folder using s3.remote()
+from snakemake.remote.S3 import RemoteProvider as S3RemoteProvider
+# use s3=S3RemoteProvider(keep_local=True) to have the download files stay when running locally.  Note delete local files or move them outside the workflow before running agc workflow run or else they will get zipped and copied back up.
+s3=S3RemoteProvider(keep_local=True)
+
+# Define the S3 bucket and folder where the data is stored
+S3_BUCKET = "genpocdata-992085379228-ca-central-1"  
+#DATA_FOLDER = "Genomics-Jordyn/2022" 
+DATA_FOLDER = "Genomics-Jordyn/2023-24/~"
+
+# Comment out this line to use a single file set.  Note this is faster when running a test.
+#CONDITIONS = ["OS00E70F"] 
+CONDITIONS = ["NS.LH00487_0015.005.NEBNext_dual_i7_197---NEBNext_dual_i5_245.10-278-B"]
+
+# Comment out this line to use the glob_wildcards function that will read and process all files in the directory
+#CONDITIONS = s3.glob_wildcards("genpocdata-992085379228-ca-central-1/aws-genomics-cli/{condition}_R1.fastq.gz").condition
+
+# Assumes all paired files are in the format <filename>_R1 and <filename>_R2
+REPLICATES = ["R1","R2"]
+
+# Folders to store the output data in
+FASTQC_REPORTS = "outputs/fastqc_reports"
+FASTQC_TRIMMED_REPORTS = "outputs/fastqc_trimmed_reports"
+TRIM_FOLDER = "outputs/trimmed"
+TRIM_MERGE_FOLDER = "outputs/trimmed_merged"
+MUTIQC_FOLDER = "outputs/multiqc"
+
+ADATPERS_FOLDER = "Reference-Databases"
+ADAPTER_FILE = "adapter.fa" 
+#"TruSeq3-PE.fa"
+
+# Define the input fasta file to use for diamond
+INPUT_FASTA_ZIP = "Short_subdatabase_V3.2.1"
+INPUT_FASTA="4.SARG_v3.2_20220917_Short_subdatabase"
+INPUT_FASTA_URL = "https://smile.hku.hk/ARGs/dataset/indexingdownload/Short_subdatabase_V3.2.1.zip"
+INPUT_FASTA_ZIP_EXT="zip"
+INPUT_FASTA_EXT="fasta"
+INPUT_FASTA_FOLDER="Short_subdatabase"
+#INPUT_FASTA = "nr"
+#INPUT_FASTA_URL = "ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz"
+
+DIAMOND_FOLDER = "outputs/diamond_out"
+
+# Define the output database file
+#OUTPUT_DB = "outputs/references/nr.dmnd"
+
+# All rull defines all the output files that are needed to run the pipeline.  Each input should match a rules output below
+rule all:
+    input:
+        ### FASTQC ###
+        expand("{fastqc_reports}/{sample}_{rep}_fastqc.html", sample=CONDITIONS, rep=REPLICATES, fastqc_reports=FASTQC_REPORTS),
+        expand("{fastqc_reports}/{sample}_{rep}_fastqc.zip", sample=CONDITIONS, rep=REPLICATES, fastqc_reports=FASTQC_REPORTS),
+        
+        ### trimmomatic ###
+        expand("{trimmed}/output_forward_paired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
+        expand("{trimmed}/output_forward_unpaired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
+        expand("{trimmed}/output_reverse_paired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
+        expand("{trimmed}/output_reverse_unpaired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
+
+        # trimmomatic adapter file
+        #expand("{adapter_folder}/{adapter_file}", adapter_folder=ADATPERS_FOLDER, adapter_file=ADAPTER_FILE),
+
+        ### TRIMMED FASTQC ###
+        expand("{fastqc_trimmed_reports}/output_forward_paired_{sample}_fastqc.html",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        expand("{fastqc_trimmed_reports}/output_forward_paired_{sample}_fastqc.zip",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        expand("{fastqc_trimmed_reports}/output_reverse_paired_{sample}_fastqc.html",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        expand("{fastqc_trimmed_reports}/output_reverse_paired_{sample}_fastqc.zip",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        expand("{fastqc_trimmed_reports}/output_forward_unpaired_{sample}_fastqc.html",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        expand("{fastqc_trimmed_reports}/output_forward_unpaired_{sample}_fastqc.zip",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        expand("{fastqc_trimmed_reports}/output_reverse_unpaired_{sample}_fastqc.html",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        expand("{fastqc_trimmed_reports}/output_reverse_unpaired_{sample}_fastqc.zip",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+    
+        ### MULTIQC ###
+        expand("{multiqc_folder}/multiqc_report.html", multiqc_folder=MUTIQC_FOLDER),
+        expand("{multiqc_folder}/multiqc_report_trimmed.html", multiqc_folder=MUTIQC_FOLDER),
+
+        ### Merge ###
+        expand("{trimmed_merged_folder}/{sample}_merged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
+        expand("{trimmed_merged_folder}/{sample}_unmerged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
+        expand("{trimmed_merged_folder}/{sample}_ihist.txt",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
+
+        ### CLEAN UP Download files ##
+        "outputs/del.txt",
+
+        ### DIAMOND ###
+        #expand("outputs/reference/{input_fasta}",input_fasta=INPUT_FASTA),
+        #expand("outputs/reference/{output_db}", output_db=OUTPUT_DB),
+        "outputs/download_ref.txt",  #Placeholder to exectue download rule for the FASTA database
+        expand("{diamond_folder}/{sample}.txt", sample=CONDITIONS, diamond_folder=DIAMOND_FOLDER),
+
+
+# Run FastQC on the data
+rule run_fastqc:
+    input:
+        s3.remote(expand("{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", sample=CONDITIONS, rep=REPLICATES, s3bucket=S3_BUCKET, folder=DATA_FOLDER))
+    output:
+        html=expand("{fastqc_reports}/{sample}_{rep}_fastqc.html",sample=CONDITIONS, rep=REPLICATES,fastqc_reports=FASTQC_REPORTS),
+        zip=expand("{fastqc_reports}/{sample}_{rep}_fastqc.zip",sample=CONDITIONS, rep=REPLICATES,fastqc_reports=FASTQC_REPORTS)
+    conda:
+        "envs/environment.yaml"
+    threads: 6
+    resources:
+        mem_mb=4096
+    shell:
+        "fastqc {input} --outdir {FASTQC_REPORTS}/ --threads 6"
+
+# Consolidates all QC files into single report pre/post trimming
+rule multiqc:
+    input:
+        # Although we are not using these files in the shell command, they are needed to trigger the rule after the fastqc reports are created
+        R1 = expand("{fastqc_reports}/{sample}_{rep}_fastqc.html",sample=CONDITIONS, rep=REPLICATES,fastqc_reports=FASTQC_REPORTS),
+        R1_trimmed = expand("{fastqc_trimmed_reports}/output_forward_paired_{sample}_fastqc.html",sample=CONDITIONS, rep=REPLICATES, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+    output:
+        R1_report = expand("{multiqc_folder}/multiqc_report.html", multiqc_folder=MUTIQC_FOLDER),
+        R2_report = expand("{multiqc_folder}/multiqc_report_trimmed.html", multiqc_folder=MUTIQC_FOLDER)
+    conda: "envs/environment.yaml"
+    shell:
+        "multiqc -n multiqc_report.html -o {MUTIQC_FOLDER} {FASTQC_REPORTS} --force; multiqc -n multiqc_report_trimmed.html -o {MUTIQC_FOLDER} {FASTQC_TRIMMED_REPORTS} --force;"
+
+# Download the ILLUMINA adapter file
+# rule download_trim_adapter:
+#     output:
+#         adapter = expand("{adapter_folder}/{adapter_file}", adapter_folder=ADATPERS_FOLDER, adapter_file=ADAPTER_FILE)
+#     shell:
+#         "wget -c https://raw.githubusercontent.com/usadellab/Trimmomatic/main/adapters/TruSeq3-PE.fa -O {ADATPERS_FOLDER}/{ADAPTER_FILE}"
+
+# Running FastQC on reads before and after trimming should be done to validate trimming step
+# When reading some claim fastp is 3x faster than trimmomatic.  Could be worth looking into. https://github.com/OpenGene/fastp
+rule trimmomatic_pe:
+    input:
+        forward = s3.remote(expand("{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", sample=CONDITIONS, rep="R1", s3bucket=S3_BUCKET, folder=DATA_FOLDER)),
+        backward = s3.remote(expand("{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", sample=CONDITIONS, rep="R2", s3bucket=S3_BUCKET, folder=DATA_FOLDER)),
+        #adapter = expand("{adapter_folder}/{adapter_file}", adapter_folder=ADATPERS_FOLDER, adapter_file=ADAPTER_FILE)
+        adapter = s3.remote(expand("{s3bucket}/{adapter_folder}/{adapter_file}", s3bucket=S3_BUCKET, adapter_folder=ADATPERS_FOLDER, adapter_file=ADAPTER_FILE))
+    output:
+        # forward reads
+        forward_paired = "{trimmed}/output_forward_paired_{sample}.fq.gz",
+        forward_unpaired = "{trimmed}/output_forward_unpaired_{sample}.fq.gz",
+        # Backward reads
+        backward_paired = "{trimmed}/output_reverse_paired_{sample}.fq.gz",
+        backward_unpaired = "{trimmed}/output_reverse_unpaired_{sample}.fq.gz"
+    conda:
+        "envs/environment.yaml"
+    # log:
+    #     "/logs/trimmomatic/{sample}.log"
+    threads: 128
+    resources:
+        mem_mb=786432,
+        _cores=64
+    shell:
+        "trimmomatic PE "
+        "-threads 128 "
+        "-phred33 "
+        "{input.forward} {input.backward} "
+        "{output.forward_paired} {output.forward_unpaired} {output.backward_paired} {output.backward_unpaired} "
+        #"LEADING:3 "
+        #"TRAILING:3 "
+        "SLIDINGWINDOW:4:15 "
+        "MINLEN:36 "
+        #"HEADCROP:1 " # Have a look at the fastqc profiles to make sure you are cropping enough bases at the beginning of the reads.
+        #"CROP:80"  # crop is optional. If for some reason you are still stuck with overrepresented kmers at the end, use crop=<in> to force them off.
+        "ILLUMINACLIP:{input.adapter}:2:30:10:2:keepBothReads "  #https://github.com/usadellab/Trimmomatic/tree/main/adapters
+
+# Run FastQC on the trimmed data
+rule run_trimmed_fastqc:
+    input:
+        # forward reads
+        forward_paired = expand("{trimmed}/output_forward_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
+        forward_unpaired = expand("{trimmed}/output_forward_unpaired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
+        # Backward reads
+        backward_paired = expand("{trimmed}/output_reverse_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
+        backward_unpaired = expand("{trimmed}/output_reverse_unpaired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS)
+    output:
+        html1=expand("{fastqc_trimmed_reports}/output_forward_paired_{sample}_fastqc.html",sample=CONDITIONS, rep=REPLICATES, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        zip1=expand("{fastqc_trimmed_reports}/output_forward_paired_{sample}_fastqc.zip",sample=CONDITIONS, rep=REPLICATES, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        html2=expand("{fastqc_trimmed_reports}/output_reverse_paired_{sample}_fastqc.html",sample=CONDITIONS, rep=REPLICATES, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        zip2=expand("{fastqc_trimmed_reports}/output_reverse_paired_{sample}_fastqc.zip",sample=CONDITIONS, rep=REPLICATES, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        html3=expand("{fastqc_trimmed_reports}/output_forward_unpaired_{sample}_fastqc.html",sample=CONDITIONS, rep=REPLICATES, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        zip3=expand("{fastqc_trimmed_reports}/output_forward_unpaired_{sample}_fastqc.zip",sample=CONDITIONS, rep=REPLICATES, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        html4=expand("{fastqc_trimmed_reports}/output_reverse_unpaired_{sample}_fastqc.html",sample=CONDITIONS, rep=REPLICATES, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        zip4=expand("{fastqc_trimmed_reports}/output_reverse_unpaired_{sample}_fastqc.zip",sample=CONDITIONS, rep=REPLICATES, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS)
+    threads: 6
+    resources:
+        mem_mb=4096
+    conda:
+        "envs/environment.yaml"
+    shell:
+        "fastqc {input} --outdir {FASTQC_TRIMMED_REPORTS}/ --threads 6"
+
+# Clean up the S3 bucket files after trimming.  
+# This is because keep_local was used and it will leave them on the EFS otherwise.  Snakemake is supposed to only remove the remote files once all rules did not depend on it but that is not working right when using expand().
+rule clean_up:
+    input:
+       R1_report = expand("{multiqc_folder}/multiqc_report.html", multiqc_folder=MUTIQC_FOLDER)
+    output:
+        "outputs/del.txt"
+    shell:
+        "rm -rf {S3_BUCKET}; touch {output}"
+
+# Download the diamond reference and store it outside the workflow.  Note it is not an output because we don't want it uploaded back to s3 under the job output files.
+# By downloading it outside the workflow it will only be done one time and will not have to download 300GB each time however you will be charged storage for it on the EFS for the life of the context.
+# wget -c will resume the file if it fails
+rule download_reference_makedb:
+    output:
+        "outputs/download_ref.txt"
+    conda:
+        "envs/environment.yaml"
+    shell:
+       """
+        # Make the directories if required
+        mkdir -p ../database
+        mkdir -p ../database/FASTA
+        mkdir -p outputs
+        if [ ! -f "../database/FASTA/{INPUT_FASTA}.dmnd" ]; then         
+           file="../database/FASTA/{INPUT_FASTA_ZIP}.{INPUT_FASTA_ZIP_EXT}"
+           if [ -f "$file" ]; then
+                echo "Local zip file does exist."
+                local_size=$(stat -c %s "$file")
+                remote_size=$(curl -sI {INPUT_FASTA_URL} | grep -i Content-Length | awk '{{print $2}}')
+                if [ "$local_size" -eq "$remote_size" ]; then
+                   echo "Local file size matches remote file size"
+                else
+                   echo "Local file size does not match remote file size.  Continue download."
+                   wget -c {INPUT_FASTA_URL} -P "../database/FASTA"
+                   echo "download complete" 
+               fi
+               #replace with gunzip for gz
+               unzip -o ../database/FASTA/{INPUT_FASTA_ZIP}.{INPUT_FASTA_ZIP_EXT} -d ../database/FASTA/
+               echo "unzip complete"
+            else
+                echo "Local zip file does not exist."
+                # check if unziped file exists and if not download it 
+                if [ ! -f "../database/FASTA/{INPUT_FASTA}" ]; then
+                    wget -c {INPUT_FASTA_URL} -P "../database/FASTA"
+                    unzip -o ../database/FASTA/{INPUT_FASTA_ZIP}.{INPUT_FASTA_ZIP_EXT} -d ../database/FASTA/  
+                    echo "download and unzip complete"
+                fi
+            fi      
+                  
+            # make the db if it does not exist
+            if [ ! -f "../database/FASTA/{INPUT_FASTA}.dmnd" ]; then
+               diamond makedb --in ../database/FASTA/{INPUT_FASTA_FOLDER}/{INPUT_FASTA}.{INPUT_FASTA_EXT} --db ../database/FASTA/{INPUT_FASTA}.dmnd
+               rm -r {INPUT_FASTA_FOLDER}
+               rm -r *.{INPUT_FASTA_ZIP_EXT}
+               echo "makedb complete" 
+            fi
+        fi
+        echo "download_reference_makedb complete" > outputs/download_ref.txt
+       """
+
+rule bbmerge:
+    # Merges paired end reads together to be used with Abyss
+    input:
+       R1 = expand("{trimmed}/output_forward_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
+       R2 = expand("{trimmed}/output_reverse_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
+    output:
+        out_merged = expand("{trimmed_merged_folder}/{sample}_merged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
+        out_unmerged = expand("{trimmed_merged_folder}/{sample}_unmerged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
+        ihist = expand("{trimmed_merged_folder}/{sample}_ihist.txt",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS)
+    conda: "envs/environment.yaml"
+    shell: "bbmerge.sh in1={input.R1} in2={input.R2} out={output.out_merged} outu={output.out_unmerged} ihist={output.ihist}"
+
+
+# Run diamond blastx on the trimmed files.  Note the database is downloaded outside the workflow to save time and storage costs.
+# Adjust settings as required.  This is a basic example.
+rule diamond_blastx:
+    input:
+       merged_paired = expand("{trimmed_merged_folder}/{sample}_merged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
+       db="outputs/download_ref.txt"
+    output:
+       expand("{diamond_folder}/{sample}.txt", sample=CONDITIONS, diamond_folder=DIAMOND_FOLDER)
+    threads: 128
+    resources:
+        mem_mb=786432,
+        _cores=64
+    conda:
+        "envs/environment.yaml"
+    shell:
+        "diamond blastx --threads 128 --outfmt 6 -q {input.merged_paired} -d ../database/FASTA/{INPUT_FASTA}.dmnd -o {output} -F 15 -e 1e-10 --more-sensitive -k 0"
+
+### Alternative method to doing the download and makedb in the workflow.  This is not recommended for larger databases as it will download the large file each time the workflow is run.  It is included for reference only. #
+## Since NR is 300 GB it was pre-downloaded and stored as a diamond DB at s3://genpocdata-992085379228-ca-central-1/Reference-Databases/nr.dmnd to save time ###
+## could look into using AWS Open data for this https://aws.amazon.com/marketplace/pp/prodview-uutdnhlrfc4ym or ElasticBlast ### 
+# rule download_reference:
+#    input:
+#       # forward reads
+#       forward_paired = expand("{trimmed}/output_forward_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
+#       forward_unpaired = expand("{trimmed}/output_forward_unpaired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
+#       # Backward reads
+#       backward_paired = expand("{trimmed}/output_reverse_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
+#       backward_unpaired = expand("{trimmed}/output_reverse_unpaired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS)
+#    output:
+#       "outputs/reference/{INPUT_FASTA}"
+#    shell:
+#       """
+#       wget {INPUT_FASTA_URL} -P "reference"
+#       gunzip outputs/reference/{INPUT_FASTA}.{INPUT_FASTA_ZIP_EXT}
+#       rm -f outputs/reference/{INPUT_FASTA}.{INPUT_FASTA_ZIP_EXT}
+#       """
+
+# rule create_diamond_db:
+#     input:
+#         fasta=expand("reference/{input_fasta}", input_fasta=INPUT_FASTA)
+#     output:
+#         db={OUTPUT_DB}
+#     conda:
+#         "envs/environment.yaml"
+#     shell:
+#         """
+#         diamond makedb --in {input.fasta} --db outputs/reference/{output.db}
+#         rm -f {input.fasta}
+#         """

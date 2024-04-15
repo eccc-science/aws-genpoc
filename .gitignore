@@ -1,0 +1,6 @@
+workflows/*/results/*
+workflows/*/trimmed/*
+workflows/*/.snakemake/*
+workflows/*/__MACOSX/*
+workflows/*/logs/*
+data/*

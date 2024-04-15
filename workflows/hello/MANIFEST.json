@@ -1,0 +1,5 @@
+{
+    "mainWorkflowURL": ".",
+    "engineOptions": "-j 10 --use-conda --local-cores 10 --verbose --debug-dag --reason --show-failed-logs --printshellcmds --cores 256"
+  }
+  

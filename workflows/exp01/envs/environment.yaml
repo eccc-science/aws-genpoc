@@ -1,0 +1,12 @@
+name: genpoc
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - fastqc
+  - trimmomatic
+  - pigz
+  - diamond
+  - multiqc
+  - unzip
+  - bbmap

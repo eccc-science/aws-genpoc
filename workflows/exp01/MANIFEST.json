@@ -1,0 +1,5 @@
+{
+    "mainWorkflowURL": ".",
+    "engineOptions": "-j 100 --use-conda --conda-prefix /mnt/efs/snakemake/conda --latency-wait 3600 --cores 48"
+}
+  
