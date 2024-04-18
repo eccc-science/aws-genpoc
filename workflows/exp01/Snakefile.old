@@ -66,3 +66,37 @@
 #    threads: 16
 #    shell:
 #       "spades.py -t {threads} -1 {input.r1} -2 {input.r2} -o spades_assemblies/{wildcards.sample} &>{log}"
+
+
+### Alternative method to doing the download and makedb in the workflow.  This is not recommended for larger databases as it will download the large file each time the workflow is run.  It is included for reference only. #
+## Since NR is 300 GB it was pre-downloaded and stored as a diamond DB at s3://genpocdata-992085379228-ca-central-1/Reference-Databases/nr.dmnd to save time ###
+## could look into using AWS Open data for this https://aws.amazon.com/marketplace/pp/prodview-uutdnhlrfc4ym or ElasticBlast ### 
+# rule download_reference:
+#    input:
+#       # forward reads
+#       forward_paired = expand("{trimmed}/output_forward_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
+#       forward_unpaired = expand("{trimmed}/output_forward_unpaired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
+#       # Backward reads
+#       backward_paired = expand("{trimmed}/output_reverse_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
+#       backward_unpaired = expand("{trimmed}/output_reverse_unpaired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS)
+#    output:
+#       "outputs/reference/{INPUT_FASTA}"
+#    shell:
+#       """
+#       wget {INPUT_FASTA_URL} -P "reference"
+#       gunzip outputs/reference/{INPUT_FASTA}.{INPUT_FASTA_ZIP_EXT}
+#       rm -f outputs/reference/{INPUT_FASTA}.{INPUT_FASTA_ZIP_EXT}
+#       """
+
+# rule create_diamond_db:
+#     input:
+#         fasta=expand("reference/{input_fasta}", input_fasta=INPUT_FASTA)
+#     output:
+#         db={OUTPUT_DB}
+#     conda:
+#         "envs/environment.yaml"
+#     shell:
+#         """
+#         diamond makedb --in {input.fasta} --db outputs/reference/{output.db}
+#         rm -f {input.fasta}
+#         """
