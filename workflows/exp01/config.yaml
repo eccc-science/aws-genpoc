@@ -1,0 +1,62 @@
+# Define the S3 bucket and folder where the data is stored
+S3:
+  BUCKET: "genpocdata-992085379228-ca-central-1"
+  #DATA_FOLDER = "Genomics-Jordyn/2022"
+  DATA_FOLDER: "Genomics-Jordyn/2023-24/~"
+  # Comment out this line to use a single file set.  Note this is faster when running a test.
+  CONDITIONS:
+    ["NS.LH00487_0015.005.NEBNext_dual_i7_197---NEBNext_dual_i5_245.10-278-B"]
+
+    # Comment out this line to use the glob_wildcards function that will read and process all files in the directory
+    #"s3.glob_wildcards("genpocdata-992085379228-ca-central-1/aws-genomics-cli/{condition}_R1.fastq.gz").condition"
+
+    # Assumes all paired files are in the format <filename>_R1 and <filename>_R2
+  REPLICATES: ["R1", "R2"]
+
+OUTPUT_FOLDERS:
+  # Folders to store the output data in
+  FASTQC_REPORTS: "outputs/fastqc_reports"
+  FASTQC_TRIMMED_REPORTS: "outputs/fastqc_trimmed_reports"
+  TRIM_FOLDER: "outputs/trimmed"
+  TRIM_MERGE_FOLDER: "outputs/trimmed_merged"
+  MUTIQC_FOLDER: "outputs/multiqc"
+  DIAMOND_FOLDER: "outputs/diamond"
+
+DATABASES:
+  FOLDER:
+    "Reference-Databases"
+
+    # Define the input fasta file to use for diamond
+  FASTA:
+    ZIP: "Short_subdatabase_V3.2.1"
+    FILE: "4.SARG_v3.2_20220917_Short_subdatabase" #"nr"
+    URL: "https://smile.hku.hk/ARGs/dataset/indexingdownload/Short_subdatabase_V3.2.1.zip" #"ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz"
+    ZIP_EXT: "zip"
+    FILE_EXT: "fasta"
+    FOLDER: "Short_subdatabase"
+
+TRIM:
+  THREADS: 4 #28 does not seem to make a difference in speed for a single pair
+  MEM_MB: 65536
+  SLIDINGWINDOW: "4:15"
+  MINLEN: 36
+  ADAPTER_FILE: "adapter.fa" #"TruSeq3-PE.fa"
+  ADAPTER_SETTINGS: "2:30:10:2:keepBothReads"
+
+FASTQC:
+  THREADS: 4
+  MEM_MB: 4096
+
+DIAMOND:
+  THREADS: 28
+  MEM_MB: 61000
+  OUTPUT_FORMAT: 6 #tabular
+  EVALUE: "3"
+  ID: 80
+  MAX_TARGET_SEQS: 1 #-k option
+  ARGS: "" #add any additional switches you want here
+
+KRAKEN:
+   URL: "https://genome-idx.s3.amazonaws.com/kraken/k2_standard_20240112.tar.gz" # Standard
+   FILE: "k2_standard_20240112.tar"
+   FILE_ZIP_EXT: "gz"

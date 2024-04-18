@@ -10,3 +10,5 @@ dependencies:
   - multiqc
   - unzip
   - bbmap
+  - pip:
+      - arg-ranker==3.7.2
