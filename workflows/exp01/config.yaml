@@ -1,3 +1,7 @@
+
+# See the modules folder for the steps.  It can take a range of values from 1 to 6 and/or a comma-delimeted list (ex 1-3,4,6).
+STEPS: "1-2,3,6"
+
 # Define the S3 bucket and folder where the data is stored
 S3:
   BUCKET: "genpocdata-992085379228-ca-central-1"
