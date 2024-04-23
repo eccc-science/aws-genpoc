@@ -11,7 +11,7 @@ rule step3_all:
 # Download the diamond reference and store it outside the workflow.  Note it is not an output because we don't want it uploaded back to s3 under the job output files.
 # By downloading it outside the workflow it will only be done one time and will not have to download 300GB each time however you will be charged storage for it on the EFS for the life of the context.
 # wget -c will resume the file if it fails
-rule download_reference_makedb:
+rule step3_download_reference_makedb:
     output:
         "outputs/download_ref.txt"
     conda:
@@ -63,7 +63,7 @@ rule download_reference_makedb:
 
 # Run diamond blastx on the trimmed files.  Note the database is downloaded outside the workflow to save time and storage costs.
 # Adjust settings as required.  This is a basic example.
-rule diamond_blastx:
+rule step3_diamond_blastx:
     input:
        merged_paired = expand("{trimmed_merged_folder}/{sample}_merged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
        db="outputs/download_ref.txt"

@@ -1,5 +1,5 @@
 
-rule download_kraken:
+rule step4_download_kraken:
     output:
         "outputs/download_kraken.txt"
     conda:

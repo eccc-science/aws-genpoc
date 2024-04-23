@@ -6,19 +6,29 @@ rule all:
 
 include: "modules/step0-config.smk"
 
-if any(str(step) in config["STEPS"] or "-" in step and int(step.split("-")[0]) <= int(s) <= int(step.split("-")[1]) for step in config["STEPS"].split(",") for s in ["1"]):
+def doStep(steps, thisStep):
+   for step in steps.split(","):
+      if "-" in step:
+         if int(step.split("-")[0]) <= int(thisStep) <= int(step.split("-")[1]):
+            return True
+      else:
+         if int(thisStep) == int(step):
+            return True
+   return False
+ 
+if doStep(config["STEPS"], 1):
    include: "modules/step1-analyze.smk"
-
-if any(str(step) in config["STEPS"] or "-" in step and int(step.split("-")[0]) <= int(s) <= int(step.split("-")[1]) for step in config["STEPS"].split(",") for s in ["2"]):
+ 
+if doStep(config["STEPS"], 2):
    include: "modules/step2-trim-merge.smk"
-
-if any(str(step) in config["STEPS"] or "-" in step and int(step.split("-")[0]) <= int(s) <= int(step.split("-")[1]) for step in config["STEPS"].split(",") for s in ["3"]):
+ 
+if doStep(config["STEPS"], 3):
    include: "modules/step3-diamond.smk"
-
-if any(str(step) in config["STEPS"] or "-" in step and int(step.split("-")[0]) <= int(s) <= int(step.split("-")[1]) for step in config["STEPS"].split(",") for s in ["4"]):
+ 
+if doStep(config["STEPS"], 4):
    include: "modules/step4-agr-ranker.smk"
-
-if any(str(step) in config["STEPS"] or "-" in step and int(step.split("-")[0]) <= int(s) <= int(step.split("-")[1]) for step in config["STEPS"].split(",") for s in ["5"]):
+ 
+if doStep(config["STEPS"], 5):
    include: "modules/step5-antismash.smk"
 
 include: "modules/step6-cleanup.smk"
