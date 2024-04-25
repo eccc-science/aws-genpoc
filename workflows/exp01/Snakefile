@@ -15,26 +15,29 @@ def doStep(steps, thisStep):
          if int(thisStep) == int(step):
             return True
    return False
-
+ 
 if doStep(config["STEPS"], 1):
+   STAGE_OUTPUTS.append(expand("{multiqc_folder}/multiqc_report.html", multiqc_folder=MUTIQC_FOLDER))
    include: "modules/step1-analyze.smk"
-
+ 
 if doStep(config["STEPS"], 2):
+   STAGE_OUTPUTS.append(expand("{multiqc_folder}/multiqc_report_trimmed.html", multiqc_folder=MUTIQC_FOLDER))
    include: "modules/step2-trim-merge.smk"
-
+ 
 if doStep(config["STEPS"], 3):
-   pass
-   #include: "modules/step3-diamond.smk"
-
+   STAGE_OUTPUTS.append(expand("{diamond_folder}/{sample}.dmd", sample=CONDITIONS, diamond_folder=DIAMOND_FOLDER))
+   #  S3_output = expand("{diamond_folder}/{sample}.dmd", sample=CONDITIONS, diamond_folder=DIAMOND_FOLDER)
+   include: "modules/step3-diamond.smk"
+ 
 if doStep(config["STEPS"], 4):
-   pass
-   #include: "modules/step4-agr-ranker.smk"
-
+   include: "modules/step4-agr-ranker.smk"
+ 
 if doStep(config["STEPS"], 5):
-   pass
-   #include: "modules/step5-antismash.smk"
-   
-if doStep(config["STEPS"], 6):
-   include: "modules/step6-cleanup.smk"
+   include: "modules/step5-antismash.smk"
 
 
+
+# Flatten the stage outputs list, to be a single list.
+#   Probabaly a better way to do this, but it works for now.
+STAGE_OUTPUTS = [i for _,o in enumerate(STAGE_OUTPUTS) for _,i in enumerate(o)]
+include: "modules/step6-cleanup.smk"

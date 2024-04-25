@@ -1,11 +1,11 @@
-rule step3_all:
-    input:
-        ### DIAMOND ###
-        "outputs/download_ref.txt",  #Placeholder to exectue download rule for the FASTA database
-        expand("{diamond_folder}/{sample}.dmd", sample=CONDITIONS, diamond_folder=DIAMOND_FOLDER),
+# rule step3_all:
+#     input:
+#         ### DIAMOND ###
+#         "outputs/download_ref.txt",  #Placeholder to exectue download rule for the FASTA database
+#         expand("{diamond_folder}/{sample}.dmd", sample=CONDITIONS, diamond_folder=DIAMOND_FOLDER),
 
-        ### KRAKEN ###
-        #"outputs/download_kraken.txt", #Placeholder to exectue download rule for the KRAKEN database
+#         ### KRAKEN ###
+#         #"outputs/download_kraken.txt", #Placeholder to exectue download rule for the KRAKEN database
 
 
 # Download the diamond reference and store it outside the workflow.  Note it is not an output because we don't want it uploaded back to s3 under the job output files.
@@ -19,25 +19,24 @@ rule step3_download_reference_makedb:
     shell:
        """
         # Make the directories if required
-        mkdir -p ../database
         mkdir -p ../database/FASTA
         mkdir -p outputs
         if [ ! -f "../database/FASTA/{INPUT_FASTA}.dmnd" ]; then         
-           file="../database/FASTA/{INPUT_FASTA_ZIP}.{INPUT_FASTA_ZIP_EXT}"
-           if [ -f "$file" ]; then
+            file="../database/FASTA/{INPUT_FASTA_ZIP}.{INPUT_FASTA_ZIP_EXT}"
+            if [ -f "$file" ]; then
                 echo "Local zip file does exist."
                 local_size=$(stat -c %s "$file")
                 remote_size=$(curl -sI {INPUT_FASTA_URL} | grep -i Content-Length | awk '{{print $2}}')
                 if [ "$local_size" -eq "$remote_size" ]; then
-                   echo "Local file size matches remote file size"
+                    echo "Local file size matches remote file size"
                 else
-                   echo "Local file size does not match remote file size.  Continue download."
-                   wget -c {INPUT_FASTA_URL} -P "../database/FASTA"
-                   echo "download complete" 
-               fi
-               #replace with gunzip for gz
-               unzip -o ../database/FASTA/{INPUT_FASTA_ZIP}.{INPUT_FASTA_ZIP_EXT} -d ../database/FASTA/
-               echo "unzip complete"
+                    echo "Local file size does not match remote file size.  Continue download."
+                    wget -c {INPUT_FASTA_URL} -P "../database/FASTA"
+                    echo "download complete" 
+                fi
+                #replace with gunzip for gz
+                unzip -o ../database/FASTA/{INPUT_FASTA_ZIP}.{INPUT_FASTA_ZIP_EXT} -d ../database/FASTA/
+                echo "unzip complete"
             else
                 echo "Local zip file does not exist."
                 # check if unziped file exists and if not download it 
@@ -47,17 +46,17 @@ rule step3_download_reference_makedb:
                     echo "download and unzip complete"
                 fi
             fi      
-                  
+
             # make the db if it does not exist
             if [ ! -f "../database/FASTA/{INPUT_FASTA}.dmnd" ]; then
-               diamond makedb --in ../database/FASTA/{INPUT_FASTA_FOLDER}/{INPUT_FASTA}.{INPUT_FASTA_EXT} --db ../database/FASTA/{INPUT_FASTA}.dmnd
-               rm -r {INPUT_FASTA_FOLDER}
-               rm -r *.{INPUT_FASTA_ZIP_EXT}
-               echo "makedb complete" 
+                diamond makedb --in ../database/FASTA/{INPUT_FASTA_FOLDER}/{INPUT_FASTA}.{INPUT_FASTA_EXT} --db ../database/FASTA/{INPUT_FASTA}.dmnd
+                rm -r {INPUT_FASTA_FOLDER}
+                rm -r *.{INPUT_FASTA_ZIP_EXT}
+                echo "makedb complete" 
             fi
         fi
         echo "download_reference_makedb complete" > outputs/download_ref.txt
-       """
+        """
 
 
 

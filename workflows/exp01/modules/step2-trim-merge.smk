@@ -1,37 +1,36 @@
 
-rule step2_all:
-   input:
-       ### trimmomatic ###
-        expand("{trimmed}/output_forward_paired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
-        expand("{trimmed}/output_forward_unpaired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
-        expand("{trimmed}/output_reverse_paired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
-        expand("{trimmed}/output_reverse_unpaired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
+# rule step2_all:
+#     input:
+#         expand("{multiqc_folder}/multiqc_report.html", multiqc_folder=MUTIQC_FOLDER),
 
-        ### TRIMMED FASTQC ###
-        expand("{fastqc_trimmed_reports}/output_forward_paired_{sample}_fastqc.html",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
-        expand("{fastqc_trimmed_reports}/output_forward_paired_{sample}_fastqc.zip", sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
-        expand("{fastqc_trimmed_reports}/output_forward_unpaired_{sample}_fastqc.html",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
-        expand("{fastqc_trimmed_reports}/output_forward_unpaired_{sample}_fastqc.zip", sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+#         ### trimmomatic ###
+#         expand("{trimmed}/output_forward_paired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
+#         expand("{trimmed}/output_forward_unpaired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
+#         expand("{trimmed}/output_reverse_paired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
+#         expand("{trimmed}/output_reverse_unpaired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
+
+#         ### TRIMMED FASTQC ###
+#         expand("{fastqc_trimmed_reports}/output_forward_paired_{sample}_fastqc.html",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+#         expand("{fastqc_trimmed_reports}/output_forward_paired_{sample}_fastqc.zip",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+#         expand("{fastqc_trimmed_reports}/output_forward_unpaired_{sample}_fastqc.html",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+#         expand("{fastqc_trimmed_reports}/output_forward_unpaired_{sample}_fastqc.zip",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
     
-        ### MULTIQC ###
-        #expand("{multiqc_folder}/multiqc_report.html", multiqc_folder=MUTIQC_FOLDER),
-        expand("{multiqc_folder}/multiqc_report_trimmed.html", multiqc_folder=MUTIQC_FOLDER),
+#         ### MULTIQC ###
+#         #expand("{multiqc_folder}/multiqc_report.html", multiqc_folder=MUTIQC_FOLDER),
+#         expand("{multiqc_folder}/multiqc_report_trimmed.html", multiqc_folder=MUTIQC_FOLDER),
 
-        ### Merge ###
-        expand("{trimmed_merged_folder}/{sample}_merged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
-        expand("{trimmed_merged_folder}/{sample}_unmerged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
-        expand("{trimmed_merged_folder}/{sample}_ihist.txt",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
+#         ### Merge ###
+#         expand("{trimmed_merged_folder}/{sample}_merged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
+#         expand("{trimmed_merged_folder}/{sample}_unmerged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
+#         expand("{trimmed_merged_folder}/{sample}_ihist.txt",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
 
 # Running FastQC on reads before and after trimming should be done to validate trimming step
 # When reading some claim fastp is 3x faster than trimmomatic.  Could be worth looking into. https://github.com/OpenGene/fastp
 rule step2_trimmomatic_pe:
     input:
-        step1 = "outputs/step1_complete",
-        forward = s3.remote(expand("{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", sample=CONDITIONS, rep="R1", s3bucket=S3_BUCKET, folder=DATA_FOLDER)),
+        forward =  s3.remote(expand("{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", sample=CONDITIONS, rep="R1", s3bucket=S3_BUCKET, folder=DATA_FOLDER)),
         backward = s3.remote(expand("{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", sample=CONDITIONS, rep="R2", s3bucket=S3_BUCKET, folder=DATA_FOLDER)),
-        #adapter = expand("{adapter_folder}/{adapter_file}", adapter_folder=ADATPERS_FOLDER, adapter_file=ADAPTER_FILE)
         adapter = s3.remote(expand("{s3bucket}/{adapter_folder}/{adapter_file}", s3bucket=S3_BUCKET, adapter_folder=ADATPERS_FOLDER, adapter_file=ADAPTER_FILE)),
-        step1_report = expand("{multiqc_folder}/multiqc_report.html", multiqc_folder=MUTIQC_FOLDER),
     output:
         # forward reads
         forward_paired = expand("{trimmed}/output_forward_paired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
@@ -64,8 +63,8 @@ rule step2_trimmomatic_pe:
 # Merges paired end reads together to be used with Diamond
 rule step2_bbmerge:
     input:
-       R1 = expand("{trimmed}/output_forward_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
-       R2 = expand("{trimmed}/output_reverse_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
+        R1 = expand("{trimmed}/output_forward_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
+        R2 = expand("{trimmed}/output_reverse_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
     output:
         out_merged = expand("{trimmed_merged_folder}/{sample}_merged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
         out_unmerged = expand("{trimmed_merged_folder}/{sample}_unmerged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),

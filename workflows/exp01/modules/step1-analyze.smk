@@ -1,6 +1,6 @@
 
 # rule step1_all:
-#     output:
+#     input:
 #         ### FASTQC ###
 #         expand("{fastqc_reports}/{sample}_{rep}_fastqc.html", sample=CONDITIONS, rep=REPLICATES, fastqc_reports=FASTQC_REPORTS),
 #         expand("{fastqc_reports}/{sample}_{rep}_fastqc.zip", sample=CONDITIONS, rep=REPLICATES, fastqc_reports=FASTQC_REPORTS),
