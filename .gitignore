@@ -3,4 +3,6 @@ workflows/*/trimmed/*
 workflows/*/.snakemake/*
 workflows/*/__MACOSX/*
 workflows/*/logs/*
+workflows/*/outputs/*
+workflows/*/data/*
 data/*

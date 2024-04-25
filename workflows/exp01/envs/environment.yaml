@@ -10,5 +10,6 @@ dependencies:
   - multiqc
   - unzip
   - bbmap
+  - snakemake
   - pip:
       - arg-ranker==3.7.2

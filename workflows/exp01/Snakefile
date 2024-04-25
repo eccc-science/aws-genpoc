@@ -1,8 +1,8 @@
 
 # All rull defines all the output files that are needed to run the pipeline.  Each input should match a rules output below
 rule all:
-    input:
-       "outputs/workflow_complete"      
+   input:
+      "outputs/workflow_complete"
 
 include: "modules/step0-config.smk"
 
@@ -15,20 +15,26 @@ def doStep(steps, thisStep):
          if int(thisStep) == int(step):
             return True
    return False
- 
+
 if doStep(config["STEPS"], 1):
    include: "modules/step1-analyze.smk"
- 
+
 if doStep(config["STEPS"], 2):
    include: "modules/step2-trim-merge.smk"
- 
-if doStep(config["STEPS"], 3):
-   include: "modules/step3-diamond.smk"
- 
-if doStep(config["STEPS"], 4):
-   include: "modules/step4-agr-ranker.smk"
- 
-if doStep(config["STEPS"], 5):
-   include: "modules/step5-antismash.smk"
 
-include: "modules/step6-cleanup.smk"
+if doStep(config["STEPS"], 3):
+   pass
+   #include: "modules/step3-diamond.smk"
+
+if doStep(config["STEPS"], 4):
+   pass
+   #include: "modules/step4-agr-ranker.smk"
+
+if doStep(config["STEPS"], 5):
+   pass
+   #include: "modules/step5-antismash.smk"
+   
+if doStep(config["STEPS"], 6):
+   include: "modules/step6-cleanup.smk"
+
+

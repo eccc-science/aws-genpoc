@@ -9,13 +9,9 @@ rule step2_all:
 
         ### TRIMMED FASTQC ###
         expand("{fastqc_trimmed_reports}/output_forward_paired_{sample}_fastqc.html",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
-        expand("{fastqc_trimmed_reports}/output_forward_paired_{sample}_fastqc.zip",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
-        expand("{fastqc_trimmed_reports}/output_reverse_paired_{sample}_fastqc.html",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
-        expand("{fastqc_trimmed_reports}/output_reverse_paired_{sample}_fastqc.zip",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        expand("{fastqc_trimmed_reports}/output_forward_paired_{sample}_fastqc.zip", sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
         expand("{fastqc_trimmed_reports}/output_forward_unpaired_{sample}_fastqc.html",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
-        expand("{fastqc_trimmed_reports}/output_forward_unpaired_{sample}_fastqc.zip",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
-        expand("{fastqc_trimmed_reports}/output_reverse_unpaired_{sample}_fastqc.html",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
-        expand("{fastqc_trimmed_reports}/output_reverse_unpaired_{sample}_fastqc.zip",sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
+        expand("{fastqc_trimmed_reports}/output_forward_unpaired_{sample}_fastqc.zip", sample=CONDITIONS, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
     
         ### MULTIQC ###
         #expand("{multiqc_folder}/multiqc_report.html", multiqc_folder=MUTIQC_FOLDER),
@@ -30,17 +26,20 @@ rule step2_all:
 # When reading some claim fastp is 3x faster than trimmomatic.  Could be worth looking into. https://github.com/OpenGene/fastp
 rule step2_trimmomatic_pe:
     input:
+        step1 = "outputs/step1_complete",
         forward = s3.remote(expand("{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", sample=CONDITIONS, rep="R1", s3bucket=S3_BUCKET, folder=DATA_FOLDER)),
         backward = s3.remote(expand("{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", sample=CONDITIONS, rep="R2", s3bucket=S3_BUCKET, folder=DATA_FOLDER)),
         #adapter = expand("{adapter_folder}/{adapter_file}", adapter_folder=ADATPERS_FOLDER, adapter_file=ADAPTER_FILE)
-        adapter = s3.remote(expand("{s3bucket}/{adapter_folder}/{adapter_file}", s3bucket=S3_BUCKET, adapter_folder=ADATPERS_FOLDER, adapter_file=ADAPTER_FILE))
+        adapter = s3.remote(expand("{s3bucket}/{adapter_folder}/{adapter_file}", s3bucket=S3_BUCKET, adapter_folder=ADATPERS_FOLDER, adapter_file=ADAPTER_FILE)),
+        step1_report = expand("{multiqc_folder}/multiqc_report.html", multiqc_folder=MUTIQC_FOLDER),
     output:
         # forward reads
-        forward_paired = "{trimmed}/output_forward_paired_{sample}.fq.gz",
-        forward_unpaired = "{trimmed}/output_forward_unpaired_{sample}.fq.gz",
+        forward_paired = expand("{trimmed}/output_forward_paired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
+        forward_unpaired = expand("{trimmed}/output_forward_unpaired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
         # Backward reads
-        backward_paired = "{trimmed}/output_reverse_paired_{sample}.fq.gz",
-        backward_unpaired = "{trimmed}/output_reverse_unpaired_{sample}.fq.gz"
+        backward_paired = expand("{trimmed}/output_reverse_paired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),
+        backward_unpaired = expand("{trimmed}/output_reverse_unpaired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS)
+        
     conda:
         "../envs/environment.yaml"
     # log:
