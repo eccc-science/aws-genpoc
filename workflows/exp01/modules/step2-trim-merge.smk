@@ -26,7 +26,7 @@
 
 # Running FastQC on reads before and after trimming should be done to validate trimming step
 # When reading some claim fastp is 3x faster than trimmomatic.  Could be worth looking into. https://github.com/OpenGene/fastp
-rule step2_trimmomatic_pe:
+rule step2_1_trimmomatic_pe:
     input:
         forward =  s3.remote(expand("{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", sample=CONDITIONS, rep="R1", s3bucket=S3_BUCKET, folder=DATA_FOLDER)),
         backward = s3.remote(expand("{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", sample=CONDITIONS, rep="R2", s3bucket=S3_BUCKET, folder=DATA_FOLDER)),
@@ -61,7 +61,7 @@ rule step2_trimmomatic_pe:
         "ILLUMINACLIP:{input.adapter}:{TRIM_ADAPTER_SETTINGS}"  #https://github.com/usadellab/Trimmomatic/tree/main/adapters
 
 # Merges paired end reads together to be used with Diamond
-rule step2_bbmerge:
+rule step2_2_bbmerge:
     input:
         R1 = expand("{trimmed}/output_forward_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
         R2 = expand("{trimmed}/output_reverse_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
@@ -73,7 +73,7 @@ rule step2_bbmerge:
     shell: "bbmerge.sh in1={input.R1} in2={input.R2} out={output.out_merged} outu={output.out_unmerged} ihist={output.ihist}"
 
 # Run FastQC on the trimmed data
-rule step2_run_trimmed_fastqc:
+rule step2_3_trimmed_fastqc:
     input:
         # forward reads
         forward_paired = expand("{trimmed}/output_forward_paired_{sample}.fq.gz",trimmed=TRIM_FOLDER, sample=CONDITIONS),
@@ -100,7 +100,7 @@ rule step2_run_trimmed_fastqc:
 
 
 # Consolidates all QC files into single report post-trimming
-rule step2_multiqc_post_trim:
+rule step2_4_multiqc_post_trim:
     input:
         R1_trimmed = expand("{fastqc_trimmed_reports}/output_forward_paired_{sample}_fastqc.html",sample=CONDITIONS, rep=REPLICATES, fastqc_trimmed_reports=FASTQC_TRIMMED_REPORTS),
     output:
