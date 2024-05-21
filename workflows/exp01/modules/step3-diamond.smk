@@ -15,7 +15,7 @@ rule step3_1_download_reference_makedb:
     output:
         "outputs/download_ref.txt"
     conda:
-        "../envs/environment.yml"
+        "../envs/environment.yaml"
     shell:
        """
         # Make the directories if required
@@ -72,6 +72,6 @@ rule step3_2_diamond_blastx:
     resources:
         mem_mb=DIAMOND_MEM_MB
     conda:
-        "../envs/environment.yml"
+        "../envs/environment.yaml"
     shell:
         "diamond blastx --threads {DIAMOND_THREADS} --outfmt {DIAMOND_OUTPUT_FMT} -q {input.merged_paired} -d ../database/FASTA/{INPUT_FASTA}.dmnd -o {output} -e {DIAMOND_EVALUE} -k {DIAMOND_K} --id {DIAMOND_ID} {DIAMOND_ARGS}"

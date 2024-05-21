@@ -37,4 +37,4 @@ rule step4_download_kraken:
             fi      
         fi
         echo "KRAKEN download complete" > outputs/download_kraken.txt
-       """
+        """
