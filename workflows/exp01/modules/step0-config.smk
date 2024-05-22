@@ -1,6 +1,8 @@
 #configuration file to run the workflow
 configfile: "config.yaml"
 
+STAGE_OUTPUTS = []
+
 # NOTE: caching as specified in the MANIFEST does not work with snakemake wrappers.  If you use them it installs the environment each time.
 # Snakemake file for running FastQC on all files in the mydata folder using s3.remote()
 from snakemake.remote.S3 import RemoteProvider as S3RemoteProvider
