@@ -38,3 +38,15 @@ rule step4_download_kraken:
         fi
         echo "KRAKEN download complete" > outputs/download_kraken.txt
         """
+
+# Run arg_ranker on the trimmed, merged files.  Note the database is downloaded outside the workflow to save time and storage costs.
+# Adjust settings as required.  This is a basic example.
+rule step4_2_arg_ranker:
+    input:
+       merged_paired = expand("{trimmed_merged_folder}/{sample}_merged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
+       db="/database/KRAKEN"
+    output:
+       expand("{argranker_folder}/{sample}.txt", sample=CONDITIONS, argranker_folder=ARGRANKER_FOLDER)
+    conda:
+        "../envs/environment.yaml"
+    shell:
