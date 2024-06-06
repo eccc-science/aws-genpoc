@@ -49,5 +49,5 @@ rule step4_2_arg_ranker:
     conda:
         "../envs/environment.yaml"
     shell:
-        "arg_ranker -i {input.merged_paired} -kkdb outputs/KRAKEN
+        "arg_ranker -i {input.merged_paired} -kkdb outputs/KRAKEN"
         "sh arg_ranking/script_output/arg_ranker.sh"
