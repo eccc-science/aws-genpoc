@@ -1,5 +1,4 @@
-
-rule step4_download_kraken:
+rule step4_1_download_kraken:
     output:
         "outputs/download_kraken.txt"
     conda:
@@ -46,7 +45,9 @@ rule step4_2_arg_ranker:
        merged_paired = expand("{trimmed_merged_folder}/{sample}_merged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS),
        db="/database/KRAKEN"
     output:
-       expand("{argranker_folder}/{sample}.txt", sample=CONDITIONS, argranker_folder=ARGRANKER_FOLDER)
+       expand("{sample}.txt")
     conda:
         "../envs/environment.yaml"
     shell:
+        "arg_ranker -i {input.merged_paired} -kkdb outputs/KRAKEN
+        "sh arg_ranking/script_output/arg_ranker.sh"
