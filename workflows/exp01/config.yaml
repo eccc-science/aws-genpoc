@@ -25,6 +25,7 @@ OUTPUT_FOLDERS:
   TRIM_MERGE_FOLDER: "outputs/trimmed_merged"
   MUTIQC_FOLDER: "outputs/multiqc"
   DIAMOND_FOLDER: "outputs/diamond"
+  ARGRANKER_FOLDER: "outputs/argranker_folder"
 
 DATABASES:
   FOLDER:
