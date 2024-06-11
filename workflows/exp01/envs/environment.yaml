@@ -10,6 +10,8 @@ dependencies:
   - multiqc
   - unzip
   - bbmap
-  - snakemake
+  - snakemake>=8.13.0
+  - snakemake-storage-plugin-s3>=0.2.11
   - pip:
       - arg-ranker==3.7.2
+      
