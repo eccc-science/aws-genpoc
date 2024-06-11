@@ -28,9 +28,9 @@
 # When reading some claim fastp is 3x faster than trimmomatic.  Could be worth looking into. https://github.com/OpenGene/fastp
 rule step2_1_trimmomatic_pe:
     input:
-        forward =  s3.remote(expand("{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", sample=CONDITIONS, rep="R1", s3bucket=S3_BUCKET, folder=DATA_FOLDER)),
-        backward = s3.remote(expand("{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", sample=CONDITIONS, rep="R2", s3bucket=S3_BUCKET, folder=DATA_FOLDER)),
-        adapter = s3.remote(expand("{s3bucket}/{adapter_folder}/{adapter_file}", s3bucket=S3_BUCKET, adapter_folder=ADATPERS_FOLDER, adapter_file=ADAPTER_FILE)),
+        forward =  storage(expand("s3://{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", sample=CONDITIONS, rep="R1", s3bucket=S3_BUCKET, folder=DATA_FOLDER)),
+        backward = storage(expand("s3://{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", sample=CONDITIONS, rep="R2", s3bucket=S3_BUCKET, folder=DATA_FOLDER)),
+        adapter = storage(expand("s3://{s3bucket}/{adapter_folder}/{adapter_file}", s3bucket=S3_BUCKET, adapter_folder=ADATPERS_FOLDER, adapter_file=ADAPTER_FILE)),
     output:
         # forward reads
         forward_paired = expand("{trimmed}/output_forward_paired_{sample}.fq.gz", trimmed=TRIM_FOLDER, sample=CONDITIONS),

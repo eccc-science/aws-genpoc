@@ -3,11 +3,19 @@ configfile: "config.yaml"
 
 STAGE_OUTPUTS = []
 
-# NOTE: caching as specified in the MANIFEST does not work with snakemake wrappers.  If you use them it installs the environment each time.
-# Snakemake file for running FastQC on all files in the mydata folder using s3.remote()
-from snakemake.remote.S3 import RemoteProvider as S3RemoteProvider
-# use s3=S3RemoteProvider(keep_local=True) to have the download files stay when running locally.  Note delete local files or move them outside the workflow before running agc workflow run or else they will get zipped and copied back up.
-s3=S3RemoteProvider(keep_local=True)
+# # NOTE: caching as specified in the MANIFEST does not work with snakemake wrappers.  If you use them it installs the environment each time.
+# # Snakemake file for running FastQC on all files in the mydata folder using s3.remote()
+# from snakemake.remote.S3 import RemoteProvider as S3RemoteProvider
+# # use s3=S3RemoteProvider(keep_local=True) to have the download files stay when running locally.  Note delete local files or move them outside the workflow before running agc workflow run or else they will get zipped and copied back up.
+# s3=S3RemoteProvider(keep_local=True)
+
+# register storage provider (not needed if no custom settings are to be defined here)
+storage:
+    provider="s3",
+    # optionally add custom settings here if needed
+    # alternatively they can be passed via command line arguments
+    # starting with --storage-s3-...
+    max_requests_per_second=10,
 
 # Define the S3 bucket and folder where the data is stored
 S3_BUCKET = config["S3"]["BUCKET"]

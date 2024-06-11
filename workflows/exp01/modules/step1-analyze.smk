@@ -13,7 +13,7 @@
 # Run FastQC on the data
 rule step1_1_fastqc:
     input:
-        fastq = s3.remote(expand("{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", sample=CONDITIONS, rep=REPLICATES, s3bucket=S3_BUCKET, folder=DATA_FOLDER), keep_local=True)
+        fastq = storage(expand("s3://{s3bucket}/{folder}/{sample}_{rep}.fastq.gz", s3bucket=S3_BUCKET, sample=CONDITIONS, rep=REPLICATES, folder=DATA_FOLDER))
     output:
         report_html = expand("{fastqc_reports}/{sample}_{rep}_fastqc.html",sample=CONDITIONS, rep=REPLICATES,fastqc_reports=FASTQC_REPORTS),
         report_zip = expand("{fastqc_reports}/{sample}_{rep}_fastqc.zip",sample=CONDITIONS, rep=REPLICATES,fastqc_reports=FASTQC_REPORTS)
