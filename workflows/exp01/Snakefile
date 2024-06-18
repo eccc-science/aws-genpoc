@@ -15,23 +15,31 @@ def doStep(steps, thisStep):
          if int(thisStep) == int(step):
             return True
    return False
- 
+
 if doStep(config["STEPS"], 1):
    STAGE_OUTPUTS.append(expand("{multiqc_folder}/multiqc_report.html", multiqc_folder=MUTIQC_FOLDER))
    include: "modules/step1-analyze.smk"
- 
+
 if doStep(config["STEPS"], 2):
+   # Stage 2_2
+   STAGE_OUTPUTS.append(expand("{trimmed_merged_folder}/{sample}_merged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS))
+   STAGE_OUTPUTS.append(expand("{trimmed_merged_folder}/{sample}_unmerged.fq",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS))
+   STAGE_OUTPUTS.append(expand("{trimmed_merged_folder}/{sample}_ihist.txt",trimmed_merged_folder=TRIM_MERGE_FOLDER, sample=CONDITIONS))
+
+   # Stage 2_3
+   STAGE_OUTPUTS.append(expand("{multiqc_folder}/multiqc_report_trimmed.html", multiqc_folder=MUTIQC_FOLDER))
    STAGE_OUTPUTS.append(expand("{multiqc_folder}/multiqc_report_trimmed.html", multiqc_folder=MUTIQC_FOLDER))
    include: "modules/step2-trim-merge.smk"
- 
+
 if doStep(config["STEPS"], 3):
    STAGE_OUTPUTS.append(expand("{diamond_folder}/{sample}.dmd", sample=CONDITIONS, diamond_folder=DIAMOND_FOLDER))
-   #  S3_output = expand("{diamond_folder}/{sample}.dmd", sample=CONDITIONS, diamond_folder=DIAMOND_FOLDER)
    include: "modules/step3-diamond.smk"
- 
+
 if doStep(config["STEPS"], 4):
+   # Stage 4_2
+   STAGE_OUTPUTS.append(expand("{sample}.txt"))
    include: "modules/step4-agr-ranker.smk"
- 
+
 if doStep(config["STEPS"], 5):
    include: "modules/step5-antismash.smk"
 
